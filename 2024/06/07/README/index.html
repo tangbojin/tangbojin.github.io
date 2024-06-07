@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="google-site-verification" content="TZE0rZyIqLl10trYu3BWBWa1Vmz6HFwhb2OcNEK4u-s" />
+     <link rel="shortcut icon" href= /img/favicon.ico >
+    <title>
+        Hexo
+    </title>
+    <meta name="description" content= 你好！我是伯金，很高兴与你相遇 >
+    <meta name="keywords" content= Blog,Hexo,Theme,TangBojin >
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 7.2.0"></head>
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-home
+ replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            test file
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <h1 id="rustfmt"><a href="#rustfmt" class="headerlink" title="rustfmt    "></a>rustfmt <a target="_blank" rel="noopener" href="https://github.com/rust-lang/rustfmt/actions/workflows/linux.yml"><img src="https://github.com/rust-lang/rustfmt/actions/workflows/linux.yml/badge.svg?event=push" alt="linux"></a> <a target="_blank" rel="noopener" href="https://github.com/rust-lang/rustfmt/actions/workflows/mac.yml"><img src="https://github.com/rust-lang/rustfmt/actions/workflows/mac.yml/badge.svg?event=push" alt="mac"></a> <a target="_blank" rel="noopener" href="https://github.com/rust-lang/rustfmt/actions/workflows/windows.yml"><img src="https://github.com/rust-lang/rustfmt/actions/workflows/windows.yml/badge.svg?event=push" alt="windows"></a> <a target="_blank" rel="noopener" href="https://crates.io/crates/rustfmt-nightly"><img src="https://img.shields.io/crates/v/rustfmt-nightly.svg" alt="crates.io"></a></h1><p>A tool for formatting Rust code according to style guidelines.</p>
+<p>If you’d like to help out (and you should, it’s a fun project!), see<br><a href="Contributing.md">Contributing.md</a> and our <a href="CODE_OF_CONDUCT.md">Code of<br>Conduct</a>.</p>
+<p>You can use rustfmt in Travis CI builds. We provide a minimal Travis CI<br>configuration (see <a href="#checking-style-on-a-ci-server">here</a>).</p>
+<h2 id="Quick-start"><a href="#Quick-start" class="headerlink" title="Quick start"></a>Quick start</h2><p>You can run <code>rustfmt</code> with Rust 1.24 and above.</p>
+<h3 id="On-the-Stable-toolchain"><a href="#On-the-Stable-toolchain" class="headerlink" title="On the Stable toolchain"></a>On the Stable toolchain</h3><p>To install:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rustup component add rustfmt</span><br></pre></td></tr></table></figure>
+
+<p>To run on a cargo project in the current working directory:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cargo <span class="built_in">fmt</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="On-the-Nightly-toolchain"><a href="#On-the-Nightly-toolchain" class="headerlink" title="On the Nightly toolchain"></a>On the Nightly toolchain</h3><p>For the latest and greatest <code>rustfmt</code>, nightly is required.</p>
+<p>To install:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rustup component add rustfmt --toolchain nightly</span><br></pre></td></tr></table></figure>
+
+<p>To run on a cargo project in the current working directory:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cargo +nightly <span class="built_in">fmt</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Limitations"><a href="#Limitations" class="headerlink" title="Limitations"></a>Limitations</h2><p>Rustfmt tries to work on as much Rust code as possible. Sometimes, the code<br>doesn’t even need to compile! In general, we are looking to limit areas of<br>instability; in particular, post-1.0, the formatting of most code should not<br>change as Rustfmt improves. However, there are some things that Rustfmt can’t<br>do or can’t do well (and thus where formatting might change significantly,<br>even post-1.0). We would like to reduce the list of limitations over time.</p>
+<p>The following list enumerates areas where Rustfmt does not work or where the<br>stability guarantees do not apply (we don’t make a distinction between the two<br>because in the future Rustfmt might work on code where it currently does not):</p>
+<ul>
+<li>a program where any part of the program does not parse (parsing is an early<br>stage of compilation and in Rust includes macro expansion).</li>
+<li>Macro declarations and uses (current status: some macro declarations and uses<br>are formatted).</li>
+<li>Comments, including any AST node with a comment ‘inside’ (Rustfmt does not<br>currently attempt to format comments, it does format code with comments inside, but that formatting may change in the future).</li>
+<li>Rust code in code blocks in comments.</li>
+<li>Any fragment of a program (i.e., stability guarantees only apply to whole<br>programs, even where fragments of a program can be formatted today).</li>
+<li>Code containing non-ascii unicode characters (we believe Rustfmt mostly works<br>here, but do not have the test coverage or experience to be 100% sure).</li>
+<li>Bugs in Rustfmt (like any software, Rustfmt has bugs, we do not consider bug<br>fixes to break our stability guarantees).</li>
+</ul>
+<h2 id="Running"><a href="#Running" class="headerlink" title="Running"></a>Running</h2><p>You can run Rustfmt by just typing <code>rustfmt filename</code> if you used <code>cargo install</code>. This runs rustfmt on the given file, if the file includes out of line<br>modules, then we reformat those too. So to run on a whole module or crate, you<br>just need to run on the root file (usually mod.rs or lib.rs). Rustfmt can also<br>read data from stdin. Alternatively, you can use <code>cargo fmt</code> to format all<br>binary and library targets of your crate.</p>
+<p>You can run <code>rustfmt --help</code> for information about available arguments.<br>The easiest way to run rustfmt against a project is with <code>cargo fmt</code>. <code>cargo fmt</code> works on both<br>single-crate projects and <a target="_blank" rel="noopener" href="https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html">cargo workspaces</a>.<br>Please see <code>cargo fmt --help</code> for usage information.</p>
+<p>You can specify the path to your own <code>rustfmt</code> binary for cargo to use by setting the<code>RUSTFMT</code><br>environment variable. This was added in v1.4.22, so you must have this version or newer to leverage this feature (<code>cargo fmt --version</code>)</p>
+<h3 id="Running-rustfmt-directly"><a href="#Running-rustfmt-directly" class="headerlink" title="Running rustfmt directly"></a>Running <code>rustfmt</code> directly</h3><p>To format individual files or arbitrary codes from stdin, the <code>rustfmt</code> binary should be used. Some<br>examples follow:</p>
+<ul>
+<li><code>rustfmt lib.rs main.rs</code> will format “lib.rs” and “main.rs” in place</li>
+<li><code>rustfmt</code> will read a code from stdin and write formatting to stdout<ul>
+<li><code>echo &quot;fn     main() &#123;&#125;&quot; | rustfmt</code> would emit “fn main() {}”.</li>
+</ul>
+</li>
+</ul>
+<p>For more information, including arguments and emit options, see <code>rustfmt --help</code>.</p>
+<h3 id="Verifying-code-is-formatted"><a href="#Verifying-code-is-formatted" class="headerlink" title="Verifying code is formatted"></a>Verifying code is formatted</h3><p>When running with <code>--check</code>, Rustfmt will exit with <code>0</code> if Rustfmt would not<br>make any formatting changes to the input, and <code>1</code> if Rustfmt would make changes.<br>In other modes, Rustfmt will exit with <code>1</code> if there was some error during<br>formatting (for example a parsing or internal error) and <code>0</code> if formatting<br>completed without error (whether or not changes were made).</p>
+<h2 id="Running-Rustfmt-from-your-editor"><a href="#Running-Rustfmt-from-your-editor" class="headerlink" title="Running Rustfmt from your editor"></a>Running Rustfmt from your editor</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/rust-lang/rust.vim#formatting-with-rustfmt">Vim</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/rust-lang/rust-mode">Emacs</a></li>
+<li><a target="_blank" rel="noopener" href="https://packagecontrol.io/packages/RustFmt">Sublime Text 3</a></li>
+<li><a href="atom.md">Atom</a></li>
+<li><a target="_blank" rel="noopener" href="https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer">Visual Studio Code</a></li>
+<li><a href="intellij.md">IntelliJ or CLion</a></li>
+</ul>
+<h2 id="Checking-style-on-a-CI-server"><a href="#Checking-style-on-a-CI-server" class="headerlink" title="Checking style on a CI server"></a>Checking style on a CI server</h2><p>To keep your code base consistently formatted, it can be helpful to fail the CI build<br>when a pull request contains unformatted code. Using <code>--check</code> instructs<br>rustfmt to exit with an error code if the input is not formatted correctly.<br>It will also print any found differences. (Older versions of Rustfmt don’t<br>support <code>--check</code>, use <code>--write-mode diff</code>).</p>
+<p>A minimal Travis setup could look like this (requires Rust 1.31.0 or greater):</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">language:</span> <span class="string">rust</span></span><br><span class="line"><span class="attr">before_script:</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">rustup</span> <span class="string">component</span> <span class="string">add</span> <span class="string">rustfmt</span></span><br><span class="line"><span class="attr">script:</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">cargo</span> <span class="string">build</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">cargo</span> <span class="string">test</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">cargo</span> <span class="string">fmt</span> <span class="string">--all</span> <span class="string">--</span> <span class="string">--check</span></span><br></pre></td></tr></table></figure>
+
+<p>See <a target="_blank" rel="noopener" href="https://medium.com/@ag_dubs/enforcing-style-in-ci-for-rust-projects-18f6b09ec69d">this blog post</a><br>for more info.</p>
+<h2 id="How-to-build-and-test"><a href="#How-to-build-and-test" class="headerlink" title="How to build and test"></a>How to build and test</h2><p><code>cargo build</code> to build.</p>
+<p><code>cargo test</code> to run all tests.</p>
+<p>To run rustfmt after this, use <code>cargo run --bin rustfmt -- filename</code>. See the<br>notes above on running rustfmt.</p>
+<h2 id="Configuring-Rustfmt"><a href="#Configuring-Rustfmt" class="headerlink" title="Configuring Rustfmt"></a>Configuring Rustfmt</h2><p>Rustfmt is designed to be very configurable. You can create a TOML file called<br><code>rustfmt.toml</code> or <code>.rustfmt.toml</code>, place it in the project or any other parent<br>directory and it will apply the options in that file. See <code>rustfmt --help=config</code> for the options which are available, or if you prefer to see<br>visual style previews, <a target="_blank" rel="noopener" href="https://rust-lang.github.io/rustfmt/">GitHub page</a>.</p>
+<p>By default, Rustfmt uses a style which conforms to the <a target="_blank" rel="noopener" href="https://doc.rust-lang.org/nightly/style-guide/">Rust style guide</a> that has been formalized through the <a target="_blank" rel="noopener" href="https://github.com/rust-dev-tools/fmt-rfcs">style RFC<br>process</a>.</p>
+<p>Configuration options are either stable or unstable. Stable options can always<br>be used, while unstable ones are only available on a nightly toolchain, and opt-in.<br>See <a target="_blank" rel="noopener" href="https://rust-lang.github.io/rustfmt/">GitHub page</a> for details.</p>
+<h3 id="Rust’s-Editions"><a href="#Rust’s-Editions" class="headerlink" title="Rust’s Editions"></a>Rust’s Editions</h3><p>Rustfmt is able to pick up the edition used by reading the <code>Cargo.toml</code> file if<br>executed through the Cargo’s formatting tool <code>cargo fmt</code>. Otherwise, the edition<br>needs to be specified in <code>rustfmt.toml</code>, e.g., with <code>edition = &quot;2018&quot;</code>.</p>
+<h2 id="Tips"><a href="#Tips" class="headerlink" title="Tips"></a>Tips</h2><ul>
+<li><p>For things you do not want rustfmt to mangle, use <code>#[rustfmt::skip]</code></p>
+</li>
+<li><p>To prevent rustfmt from formatting a macro or an attribute,<br>use <code>#[rustfmt::skip::macros(target_macro_name)]</code> or<br><code>#[rustfmt::skip::attributes(target_attribute_name)]</code></p>
+<p>Example:</p>
+  <figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#![rustfmt::skip::attributes(custom_attribute)]</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#[custom_attribute(formatting , here , should , be , Skipped)]</span></span><br><span class="line"><span class="meta">#[rustfmt::skip::macros(html)]</span></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">main</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="variable">macro_result1</span> = html! &#123; &lt;div&gt;</span><br><span class="line">Hello&lt;/div&gt;</span><br><span class="line">    &#125;.<span class="title function_ invoke__">to_string</span>();</span><br></pre></td></tr></table></figure></li>
+<li><p>When you run rustfmt, place a file named <code>rustfmt.toml</code> or <code>.rustfmt.toml</code> in<br>target file directory or its parents to override the default settings of<br>rustfmt. You can generate a file containing the default configuration with<br><code>rustfmt --print-config default rustfmt.toml</code> and customize as needed.</p>
+</li>
+<li><p>After successful compilation, a <code>rustfmt</code> executable can be found in the<br>target directory.</p>
+</li>
+<li><p>If you’re having issues compiling Rustfmt (or compile errors when trying to<br>install), make sure you have the most recent version of Rust installed.</p>
+</li>
+<li><p>You can change the way rustfmt emits the changes with the –emit flag:</p>
+<p>Example:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cargo <span class="built_in">fmt</span> -- --emit files</span><br></pre></td></tr></table></figure>
+
+<p>Options:</p>
+<table>
+<thead>
+<tr>
+<th align="center">Flag</th>
+<th align="center">Description</th>
+<th align="center">Nightly Only</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">files</td>
+<td align="center">overwrites output to files</td>
+<td align="center">No</td>
+</tr>
+<tr>
+<td align="center">stdout</td>
+<td align="center">writes output to stdout</td>
+<td align="center">No</td>
+</tr>
+<tr>
+<td align="center">coverage</td>
+<td align="center">displays how much of the input file was processed</td>
+<td align="center">Yes</td>
+</tr>
+<tr>
+<td align="center">checkstyle</td>
+<td align="center">emits in a checkstyle format</td>
+<td align="center">Yes</td>
+</tr>
+<tr>
+<td align="center">json</td>
+<td align="center">emits diffs in a json format</td>
+<td align="center">Yes</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+<h2 id="License"><a href="#License" class="headerlink" title="License"></a>License</h2><p>Rustfmt is distributed under the terms of both the MIT license and the<br>Apache License (Version 2.0).</p>
+<p>See <a href="LICENSE-APACHE">LICENSE-APACHE</a> and <a href="LICENSE-MIT">LICENSE-MIT</a> for details.</p>
+
+    </div>
+
+    
+        <hr class="fhr">
+        <div id="vcomments"></div>
+    
+</div>
+    <div class="footer" id="footer">
+    <p><h4>Copyright © 2020 | Author: 伯金 | Theme By <a class="theme-author" target="_blank" rel="noopener" href="https://github.com/Xunzhuo/hexo-theme-coder" style="font-size:14px; color: #969696">Coder</a></h4>
+    
+        <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+        <span id="busuanzi_container_site_pv">Page Views: <span id="busuanzi_value_site_pv"></span></span>
+        <span class="post-meta-divider">|</span>
+        <span id="busuanzi_container_site_uv">Unique Visitors: <span id="busuanzi_value_site_uv"></span></span>
+    
+    <label class="el-switch el-switch-blue el-switch-sm" style="vertical-align: sub;">
+        <input type="checkbox" name="switch" id="update_style">
+        <span class="el-switch-style"></span>
+    </label>
+
+    <!--         <script type="text/javascript">
+    var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+    document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+    </script> -->
+</p>
+</div>
+
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="zjNzwcSiTGlfPiUE3JlJNCzu-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="7QnBjywldPiVVQG6pS1L4SK4">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+color: #698fca;
+}
+.v .vlist .vcard .vhead .vsys {
+color: #3a3e4a;
+}
+.v .vlist .vcard .vh .vmeta .vat {
+color: #638fd5;
+}
+.v .vlist .vcard .vhead .vnick {
+color: #6ba1ff;
+}
+.v a {
+color: #8696b1;
+}
+.v .vlist .vcard .vhead .vnick:hover {
+color: #669bfc;
+}
+</style>
+    <script type="text/javascript" color="173,174,173" opacity='1' zIndex="-2" count="99" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+</body>
+</html>
