@@ -1,3 +1,3 @@
-var posts=["2024/04/12/hexo版本升级/","2024/03/11/hello-world/","2024/07/01/免费托管域名网站/","2024/03/11/Markdown简明语法教程/","2024/06/21/cloudflare节点测速网址/","2024/03/22/Linux的home目录满了，但使用量很少/","2024/04/16/SimpleDateFormat线程不安全/","2024/06/10/SpringBoot 项目中使用Log4j2详细（避坑）/","2024/04/25/ThreadPoolExecutor执行失败，无错误抛出/","2024/04/18/Mysql报错this-is-incompatible-with-sql-mode-only-full-group-by/"];function toRandomPost(){
+var posts=["2024/04/12/hexo版本升级/","2024/03/11/hello-world/","2024/07/01/免费托管域名网站/","2024/03/11/Markdown简明语法教程/","2024/06/21/cloudflare节点测速网址/","2024/07/03/下架后-docker的安装和替代源/","2024/03/22/Linux的home目录满了，但使用量很少/","2024/04/16/SimpleDateFormat线程不安全/","2024/06/10/SpringBoot 项目中使用Log4j2详细（避坑）/","2024/04/25/ThreadPoolExecutor执行失败，无错误抛出/","2024/04/18/Mysql报错this-is-incompatible-with-sql-mode-only-full-group-by/"];function toRandomPost(){
     pjax.loadUrl('/'+posts[Math.floor(Math.random() * posts.length)]);
   };
