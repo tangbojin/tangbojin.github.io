@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 100">
+  <defs>
+    <style type="text/css">
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@700&amp;display=swap');
+    </style>
+  </defs>
+  
+  <!-- 上班吃苦 -->
+  <text x="10" y="60" font-family="'Noto Sans SC', sans-serif" font-size="32" font-weight="bold">
+    <tspan fill="#FF6B6B">上</tspan>
+    <tspan x="42" fill="#4ECDC4">班</tspan>
+    <tspan x="74" fill="#45B7D1">吃</tspan>
+    <tspan x="106" fill="#F9C74F">苦</tspan>
+  </text>
+  
+  <!-- 分隔符 -->
+  <text x="138" y="60" font-family="'Noto Sans SC', sans-serif" font-size="32" font-weight="bold" fill="#333333">|</text>
+  
+  <!-- 老板开路虎 -->
+  <text x="160" y="60" font-family="'Noto Sans SC', sans-serif" font-size="32" font-weight="bold">
+    <tspan fill="#FF9FF3">老</tspan>
+    <tspan x="192" fill="#54A0FF">板</tspan>
+    <tspan x="224" fill="#5CD85A">开</tspan>
+    <tspan x="256" fill="#FF6B6B">路</tspan>
+    <tspan x="288" fill="#FEA47F">虎</tspan>
+  </text>
+</svg>
