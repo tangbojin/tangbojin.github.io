@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /music/
+Disallow: /album/
+Disallow: /privacy/
+ 
+Sitemap: https://blog.tangbojin.cn/sitemap.txt

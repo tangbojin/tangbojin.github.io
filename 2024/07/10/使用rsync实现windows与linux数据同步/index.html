@@ -1,0 +1,708 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><!-- hexo injector head_begin start --><script>
+                (() => {
+                    let sw = navigator.serviceWorker
+                    let error = () => console.error('Service Worker 注册失败！可能是由于您的浏览器不支持该功能！')
+                    if (!sw?.register('/sw.js')
+                        
+                        ?.catch(error)
+                    ) error()
+                })()
+            </script><!-- hexo injector head_begin end --><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"><title>使用rsync实现windows与linux数据同步|保姆级图文教程 | Town-Xiler</title><meta name="keywords" content="Linux,rsync,Windows"><meta name="author" content="唐喜乐"><meta name="copyright" content="唐喜乐"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#f7f9fe"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-touch-fullscreen" content="yes"><meta name="apple-mobile-web-app-title" content="使用rsync实现windows与linux数据同步|保姆级图文教程"><meta name="application-name" content="使用rsync实现windows与linux数据同步|保姆级图文教程"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="#f7f9fe"><meta property="og:type" content="article"><meta property="og:title" content="使用rsync实现windows与linux数据同步|保姆级图文教程"><meta property="og:url" content="https://blog.tangbojin.cn/2024/07/10/%E4%BD%BF%E7%94%A8rsync%E5%AE%9E%E7%8E%B0windows%E4%B8%8Elinux%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5/index.html"><meta property="og:site_name" content="Town-Xiler"><meta property="og:description" content="rsync实现Windows与Linux文件同步部署文档1. 部署准备与说明1.1 前置说明 该方案使用rsync程序进行数据的同步与备份。 该程序在Linux系统的客户端为rsync；Windows系统的服务端为cwRsyncServer 我们将Windows系统作为服务端，将Linux系统作为客"><meta property="og:locale" content="zh-CN"><meta property="og:image" content="https://raw.githubusercontent.com/tangbojin/picx-images-hosting/master/article/rsync_cover.231r45gp74.avif"><meta property="article:author" content="唐喜乐"><meta property="article:tag" content="个人博客 java 技术分享 想法记录"><meta name="twitter:card" content="summary"><meta name="twitter:image" content="https://raw.githubusercontent.com/tangbojin/picx-images-hosting/master/article/rsync_cover.231r45gp74.avif"><meta name="description" content="rsync实现Windows与Linux文件同步部署文档1. 部署准备与说明1.1 前置说明 该方案使用rsync程序进行数据的同步与备份。 该程序在Linux系统的客户端为rsync；Windows系统的服务端为cwRsyncServer 我们将Windows系统作为服务端，将Linux系统作为客"><link rel="shortcut icon" href="/favicon.ico"><link rel="canonical" href="https://blog.tangbojin.cn/2024/07/10/%E4%BD%BF%E7%94%A8rsync%E5%AE%9E%E7%8E%B0windows%E4%B8%8Elinux%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5/"><link rel="preconnect" href="//cdn.cbd.int"/><meta name="google-site-verification" content="xxx"/><meta name="baidu-site-verification" content="codeva-CHkOpQ2fkY"/><meta name="msvalidate.01" content="xxx"/><link rel="manifest" href="/manifest.json"/><meta name="msapplication-TileColor" content="var(--anzhiyu-main)"/><link rel="mask-icon" href="/img/siteicon/tiger-180.png" color="#5bbad5"/><link rel="apple-touch-icon" sizes="180x180" href="/img/siteicon/tiger-180.png"/><link rel="apple-touch-icon-precomposed" sizes="180x180" href="/img/siteicon/tiger-180.png"/><link rel="icon" type="image/png" sizes="32x32" href="/img/siteicon/tiger-48.png"/><link rel="icon" type="image/png" sizes="16x16" href="/img/siteicon/tiger-16.png"/><link rel="bookmark" href="/img/siteicon/tiger-180.png"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-2048-2732.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-2732-2048.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-1668-2388.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-2388-1668.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-1536-2048.jpg" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-2048-1536.jpg" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-1668-2224.jpg" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-2224-1668.jpg" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-1620-2160.jpg" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-2160-1620.jpg" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-1290-2796.jpg" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-2796-1290.jpg" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-1179-2556.jpg" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-2556-1179.jpg" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-1284-2778.jpg" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-2778-1284.jpg" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-1170-2532.jpg" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-2532-1170.jpg" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-1125-2436.jpg" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-2436-1125.jpg" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-1242-2688.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-2688-1242.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-828-1792.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-1792-828.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-1242-2208.jpg" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-2208-1242.jpg" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-750-1334.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-1334-750.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-640-1136.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"/><link rel="apple-touch-startup-image" href="/img/siteicon/apple-splash-1136-640.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.cbd.int/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.cbd.int/@fancyapps/ui@5.0.28/dist/fancybox/fancybox.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.0/swiper/swiper.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  linkPageTop: undefined,
+  peoplecanvas: undefined,
+  postHeadAiDescription: undefined,
+  diytitle: {"enable":true,"leaveTitle":"去哪哦，快回来！","backTitle":"来了就不能跑哈！"},
+  LA51: undefined,
+  greetingBox: {"enable":true,"default":"你好啊，欢迎来看我👋👋👋","list":[{"greeting":"晚安咯😴","startTime":0,"endTime":6},{"greeting":"元气满满的一天，Power！","startTime":6,"endTime":11},{"greeting":"11点多啦, 在坚持一下就吃饭啦～","startTime":11,"endTime":11},{"greeting":"中午觉必须睡啊，午安~","startTime":12,"endTime":14},{"greeting":"🌈我不苦，老板怎么开路虎！","startTime":14,"endTime":18},{"greeting":"又混了一天工资，好开心。","startTime":19,"endTime":19},{"greeting":"晚上好👋, 在属于自己的时间好好放松😌~","startTime":20,"endTime":24}]},
+  twikooEnvId: 'https://twikoo.tangbojin.cn/.netlify/functions/twikoo',
+  commentBarrageConfig:{"enable":true,"maxBarrage":1,"barrageTime":4000,"accessToken":"45ec84113df6418d9eefff1558542824","mailMd5":"47CA0A00F8F6B667"},
+  music_page_default: "nav_music",
+  root: '/',
+  preloader: {"source":3},
+  friends_vue_info: undefined,
+  navMusic: true,
+  mainTone: {"mode":"api","api":"https://img2color-go.vercel.app/api?img=","cover_change":true},
+  authorStatus: {"skills":["🧱 代码民工","🔨 生活天坑修补匠","🔍 分享与热心帮助","👨‍💻 程序软件爱好者","🛌 懒癌积极治疗患者"]},
+  algolia: {"appId":"PMR1KAY8UM","apiKey":"50551406340ca9110be1a8c77f97c1b8","indexName":"blog_anzhiyu","hits":{"per_page":6},"languages":{"input_placeholder":"输入关键词后按下回车查找","hits_empty":"找不到您查询的内容：${query}","hits_stats":"找到 ${hits} 条结果，用时 ${time} 毫秒"}},
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简","rightMenuMsgToTraditionalChinese":"转为繁体","rightMenuMsgToSimplifiedChinese":"转为简体"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":330},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    simplehomepage: true,
+    post: true
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"copy":true,"copyrightEbable":false,"limitCount":50,"languages":{"author":"作者: 唐喜乐","link":"链接: ","source":"来源: Town-Xiler","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。","copySuccess":"复制成功，复制和转载请标注本文地址"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#2d3035","position":"top-center"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.cbd.int/flickr-justified-gallery@2.1.2/dist/fjGallery.min.js',
+      css: 'https://cdn.cbd.int/flickr-justified-gallery@2.1.2/dist/fjGallery.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isAnchor: false,
+  shortcutKey: undefined,
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  configTitle: 'Town-Xiler',
+  title: '使用rsync实现windows与linux数据同步|保姆级图文教程',
+  postAI: '',
+  pageFillDescription: 'rsync实现Windows与Linux文件同步部署文档, 1. 部署准备与说明, 1.1 前置说明, 1.2 安装软件, 2. 安装Windows服务端cwRsyncServer, 2.1 创建名为SvcCWRSYNC的Windows管理员账户, 2.2 安装cwRsyncServer软件, 2.3 配置cwRsyncServer服务端, 2.4 开放防火墙允许该程序使用的端口进行数据出入, 3. 安装Linux客户端rsync, 3.1 网络联通性确认, 3.2 Yum命令安装方式：, 3.3 编译安装方式, 4. 设置定时同步数据的任务, 4.1 使用crontabs设置定时同步数据的任务实现与文件同步部署文档部署准备与说明前置说明该方案使用程序进行数据的同步与备份该程序在系统的客户端为系统的服务端为我们将系统作为服务端将系统作为客户端采用客户端把文件推送到服务器端的同步策略进行数据的同步数据同步为无差异同步以客户端的数据为准当客户端数据有增删时服务端在同步时也会进行响应的数据增删无网络环境的话需要提前下载好和的安装包点击对应系统进行下载安装软件安装服务端创建名为的管理员账户点击开始菜单点击上方的用户头像图标选择更改账户设置弹窗后点击其他用户点右侧的图标将其他人添加到这台电脑弹窗后点击我没有这个人的登录信息页面更新后点击添加一个没有帐户的用户弹窗后设置用户名为密码自己进行设定安全问题可自由填写填写完成点击下一步在创建完成后的界面点击更改账户类型在弹出的下拉框中点击选择管理员点击确定完成用户的创建安装软件解压上面提供的压缩包得到一个的安装软件双击程序启动安装一路点击直到界面要求给定一个账户用于同步数据否则将无法启动对应的服务程序此处填写刚才创建的账户密码为刚才自定义的密码安装完成后关闭右键点击任务栏点击任务管理器打开它打开后切换到服务选项卡点击打开服务找到名称为的服务如没有此服务则是安装时设置的用户账户与实际账户不匹配或是非管理员账户此种情况请卸载后重新安装并正确设置用户账户双击打开服务选择启动类型自动点击启动启动完成后点击确定配置服务端打开软件的安装目录默认是在如自定义目录则打开对应目录目录内文件如下使用文本编辑器打开文件修改其中配置如下重要参数说明模块名定义哪个文件夹用来进行数据同步如希望同步多个文件夹可增加模块从到最后的配置进行拷贝放在配置末尾修改参数为指定用来同步数据的文件夹即可修改中的名称可自定义指定用来存放同步数据的文件夹可自定义但是为路径前缀不可变动后面的值才是实际的路径盘盘用小写字母表示即可务必请根据需求修改路径切换到安装目录的文件夹下将创建完整名为的密码文件此文件为中为数据为用户名密码示例开放防火墙允许该程序使用的端口进行数据出入打开控制面板点击防火墙点击右侧的高级设置弹出窗口后点击左侧的入站规则再点击右边的新建规则弹窗后点击选择端口点击下一步选择特定本地端口并填入填写完成后一直点击下一步直到名称项填入点击完成同样的方法配置出站规则步骤与入站规则一致安装客户端网络联通性确认环境也需确保端口开放访问执行命令地址如返回下图的情况表示端口已联通如提示则该命令未安装依次执行进行安装如无法联通则执行对端口开放防火墙再进行确认命令安装方式此方式针对电脑可以连接外网能使用安装命令的情况能简便安装服务系统上执行命令进行安装等待出现表示安装成功配置密码文件执行输入在上设置的用户的密码完成后保存退出设置密码文件权限执行设置配置文件执行填入下列内容完成后保存退出启动服务执行设置开机自启执行编译安装方式此方式为编译安装适用无法访问外网与安装命令的情况兼容与系统须在本文开头点击下载对应软件包服务器上执行切换到当前用户目录执行查看当前用户目录将下载的包拷贝到此目录下完成拷贝后执行切换到目录下查看文件是否存在执行对程序包进行解压解压完成切换到目录执行检查配置出现如下提示表示配置正确执行完成后再执行对程序包进行编译编译完成后需要自己设置配置文件执行创建配置文件存放的文件夹切换到此文件夹执行创建配置文件执行编辑配置文件填入下列内容输入完成后保存退出执行创建密码文件填入安装时设置的密码输入完成后保存退出设置密码文件权限启动服务执行设置定时同步数据的任务使用设置定时同步数据的任务查看服务是否在运行执行如下为运行状态注如服务非运行状态则执行进行启动如未找到该服务则依次执行进行安装并启动设置数据同步脚本执行创建脚本执行编辑脚本输入如下命令数据存放的路径的地址模块名注其中内容为需要自己替换的地方下面给出一个样例进行参考这表示我需要将文件夹中所有内容同步到地址为的电脑上数据存放在模块中指定的目录注意如配置了多个模块用来同步此处需相应增加同步命令只需修改数据存放的路径与对应的模块名即可设置完成后保存退出设置系统定时任务定时执行备份脚本执行输入如下内容输入完成后保存退出以上表示系统将每隔分钟执行一次刚才的备份脚本进行数据的备份执行使任务立即生效',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-04-02 11:38:11',
+  postMainColor: '',
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#18171d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f7f9fe')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+          const isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+          const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+          if (t === undefined) {
+            if (isLightMode) activateLightMode()
+            else if (isDarkMode) activateDarkMode()
+            else if (isNotSpecified || hasNoSupport) {
+              const now = new Date()
+              const hour = now.getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            window.matchMedia('(prefers-color-scheme: dark)').addListener(e => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><!-- hexo injector head_end start --><script defer src="/sw-dom.js"></script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body data-type="anzhiyu"><div id="web_bg"></div><div id="an_music_bg"></div><div id="loading-box" onclick="document.getElementById(&quot;loading-box&quot;).classList.add(&quot;loaded&quot;)"><div class="loading-bg"><img class="loading-img nolazyload" alt="加载头像" src="https://raw.githubusercontent.com/tangbojin/PicBed/img/shokax/pedro_raccon.gif"/><div class="loading-image-dot"></div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.getElementById('loading-box').classList.add("loaded");
+  },
+  initLoading: () => {
+    document.getElementById('loading-box').classList.remove("loaded")
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+setTimeout(function(){preloader.endLoading();},10000)
+
+if (true) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.10/progress_bar/progress_bar.css"/><script async="async" src="https://cdn.cbd.int/pace-js@1.2.4/pace.min.js" data-pace-options="{ &quot;restartOnRequestAfter&quot;:false,&quot;eventLag&quot;:false}"></script><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><div id="nav-group"><span id="blog_name"><div class="back-home-button"><i class="anzhiyufont anzhiyu-icon-grip-vertical"></i><div class="back-menu-list-groups"><div class="back-menu-list-group"><div class="back-menu-list-title">网页</div><div class="back-menu-list"><a class="back-menu-item" target="_blank" rel="noopener" href="https://tangbojin.cn/" title="主站"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="主站"/><span class="back-menu-item-text">主站</span></a></div></div></div></div><a id="site-name" href="/" accesskey="h"><div class="title">Town-Xiler</div><i class="anzhiyufont anzhiyu-icon-house-chimney"></i></a></span><div class="mask-name-container"><div id="name-container"><a id="page-name" href="javascript:anzhiyu.scrollToDest(0, 500)">PAGE_NAME</a></div></div><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 文章区</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/archives/"><i class="anzhiyufont anzhiyu-icon-box-archive faa-tada" style="font-size: 0.9em;"></i><span> 列表</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/categories/"><i class="anzhiyufont anzhiyu-icon-shapes faa-tada" style="font-size: 0.9em;"></i><span> 分类</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags faa-tada" style="font-size: 0.9em;"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 功能区</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/comments/"><i class="anzhiyufont anzhiyu-icon-envelope faa-tada" style="font-size: 0.9em;"></i><span> 留言板</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/music/?id=12260782606&amp;server=netease"><i class="anzhiyufont anzhiyu-icon-music faa-tada" style="font-size: 0.9em;"></i><span> 音乐馆</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/album/"><i class="anzhiyufont anzhiyu-icon-images faa-tada" style="font-size: 0.9em;"></i><span> 相册集</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 关于</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/about/"><i class="anzhiyufont anzhiyu-icon-paper-plane faa-tada" style="font-size: 0.9em;"></i><span> 关于本人</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/essay/"><i class="anzhiyufont anzhiyu-icon-lightbulb faa-tada" style="font-size: 0.9em;"></i><span> 闲言碎语</span></a></li></ul></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/link/"><span> 友链</span></a></div></div></div><div id="nav-right"><div class="nav-button" id="randomPost_button"><a class="site-page" onclick="toRandomPost()" title="随机前往一个文章" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-dice"></i></a></div><div class="nav-button" id="search-button"><a class="site-page social-icon search" href="javascript:void(0);" title="搜索🔍" accesskey="s"><i class="anzhiyufont anzhiyu-icon-magnifying-glass"></i><span> 搜索</span></a></div><input id="center-console" type="checkbox"/><label class="widget" for="center-console" title="中控台" onclick="anzhiyu.switchConsole();"><i class="left"></i><i class="widget center"></i><i class="widget right"></i></label><div id="console"><div class="console-card-group-reward"><ul class="reward-all console-card"><li class="reward-item"><a href="/img/wechatpay.webp" target="_blank"><img class="post-qr-code-img" alt="微信" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/wechatpay.webp"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.webp" target="_blank"><img class="post-qr-code-img" alt="支付宝" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/alipay.webp"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div><div class="console-card-group"><div class="console-card-group-left"><div class="console-card" id="card-newest-comments"><div class="card-content"><div class="author-content-item-tips">互动</div><span class="author-content-item-title"> 最新评论</span></div><div class="aside-list"><span>正在加载中...</span></div></div></div><div class="console-card-group-right"><div class="console-card tags"><div class="card-content"><div class="author-content-item-tips">兴趣点</div><span class="author-content-item-title">寻找你感兴趣的领域</span><div class="card-tags"><div class="item-headline"></div><div class="card-tag-cloud"><a href="/tags/DNS/" style="font-size: 1.05rem;">DNS<sup>1</sup></a><a href="/tags/JVM/" style="font-size: 1.05rem;">JVM<sup>1</sup></a><a href="/tags/Java/" style="font-size: 1.05rem;">Java<sup>13</sup></a><a href="/tags/Linux/" style="font-size: 1.05rem;">Linux<sup>2</sup></a><a href="/tags/Log4j2/" style="font-size: 1.05rem;">Log4j2<sup>1</sup></a><a href="/tags/MarkDown/" style="font-size: 1.05rem;">MarkDown<sup>1</sup></a><a href="/tags/MyBatis/" style="font-size: 1.05rem;">MyBatis<sup>1</sup></a><a href="/tags/Mybatis/" style="font-size: 1.05rem;">Mybatis<sup>2</sup></a><a href="/tags/Mysql/" style="font-size: 1.05rem;">Mysql<sup>1</sup></a><a href="/tags/Nginx/" style="font-size: 1.05rem;">Nginx<sup>1</sup></a><a href="/tags/Redis/" style="font-size: 1.05rem;">Redis<sup>1</sup></a><a href="/tags/Spring/" style="font-size: 1.05rem;">Spring<sup>1</sup></a><a href="/tags/Spring-Cloud/" style="font-size: 1.05rem;">Spring Cloud<sup>1</sup></a><a href="/tags/SpringBoot/" style="font-size: 1.05rem;">SpringBoot<sup>1</sup></a><a href="/tags/Windows/" style="font-size: 1.05rem;">Windows<sup>1</sup></a><a href="/tags/cloudflare/" style="font-size: 1.05rem;">cloudflare<sup>2</sup></a><a href="/tags/hexo/" style="font-size: 1.05rem;">hexo<sup>1</sup></a><a href="/tags/mysql/" style="font-size: 1.05rem;">mysql<sup>1</sup></a><a href="/tags/npm/" style="font-size: 1.05rem;">npm<sup>1</sup></a><a href="/tags/rsync/" style="font-size: 1.05rem;">rsync<sup>1</sup></a><a href="/tags/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" style="font-size: 1.05rem;">垃圾回收<sup>1</sup></a><a href="/tags/%E5%9F%9F%E5%90%8D/" style="font-size: 1.05rem;">域名<sup>1</sup></a><a href="/tags/%E6%96%87%E4%BB%B6%E5%82%A8%E5%AD%98/" style="font-size: 1.05rem;">文件储存<sup>1</sup></a><a href="/tags/%E7%A7%91%E5%AD%A6%E4%B8%8A%E7%BD%91/" style="font-size: 1.05rem;">科学上网<sup>2</sup></a><a href="/tags/%E7%BA%BF%E7%A8%8B/" style="font-size: 1.05rem;">线程<sup>3</sup></a><a href="/tags/%E9%9D%A2%E8%AF%95/" style="font-size: 1.05rem;">面试<sup>10</sup></a></div></div><hr/></div></div><div class="console-card history"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-box-archiv"></i><span>文章</span></div><div class="card-archives"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-archive"></i><span>归档</span></div><ul class="card-archive-list"><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/07/"><span class="card-archive-list-date">七月 2024</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">15</span><span>篇</span></div></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/06/"><span class="card-archive-list-date">六月 2024</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">2</span><span>篇</span></div></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/04/"><span class="card-archive-list-date">四月 2024</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">4</span><span>篇</span></div></a></li><li class="card-archive-list-item"><a class="card-archive-list-link" href="/archives/2024/03/"><span class="card-archive-list-date">三月 2024</span><div class="card-archive-list-count-group"><span class="card-archive-list-count">3</span><span>篇</span></div></a></li></ul></div><hr/></div></div></div><div class="button-group"><div class="console-btn-item"><a class="darkmode_switchbutton" title="显示模式切换" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-moon"></i></a></div><div class="console-btn-item" id="consoleHideAside" onclick="anzhiyu.hideAsideBtn()" title="边栏显示控制"><a class="asideSwitch"><i class="anzhiyufont anzhiyu-icon-arrows-left-right"></i></a></div><div class="console-btn-item on" id="consoleCommentBarrage" onclick="anzhiyu.switchCommentBarrage()" title="热评开关"><a class="commentBarrage"><i class="anzhiyufont anzhiyu-icon-message"></i></a></div><div class="console-btn-item" id="consoleMusic" onclick="anzhiyu.musicToggle()" title="音乐开关"><a class="music-switch"><i class="anzhiyufont anzhiyu-icon-music"></i></a></div></div><div class="console-mask" onclick="anzhiyu.hideConsole()" href="javascript:void(0);"></div></div><div class="nav-button" id="nav-totop"><a class="totopbtn" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i><span id="percent" onclick="anzhiyu.scrollToDest(0,500)">0</span></a></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);" title="切换"><i class="anzhiyufont anzhiyu-icon-bars"></i></a></div></div></div></nav></header><main id="blog-container"><div class="layout" id="content-inner"><div id="post"><div id="post-info"><div id="post-firstinfo"><div class="meta-firstline"><a class="post-meta-original">原创</a><span class="post-meta-categories"><span class="post-meta-separator"></span><i class="anzhiyufont anzhiyu-icon-inbox post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%8A%80%E6%9C%AF%E5%8D%9A%E6%96%87/" itemprop="url">技术博文</a></span><span class="article-meta tags"><a class="article-meta__tags" href="/tags/Linux/" tabindex="-1" itemprop="url"> <span> <i class="anzhiyufont anzhiyu-icon-hashtag"></i>Linux</span></a><a class="article-meta__tags" href="/tags/rsync/" tabindex="-1" itemprop="url"> <span> <i class="anzhiyufont anzhiyu-icon-hashtag"></i>rsync</span></a><a class="article-meta__tags" href="/tags/Windows/" tabindex="-1" itemprop="url"> <span> <i class="anzhiyufont anzhiyu-icon-hashtag"></i>Windows</span></a></span></div></div><h1 class="post-title" itemprop="name headline">使用rsync实现windows与linux数据同步|保姆级图文教程</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="post-meta-icon anzhiyufont anzhiyu-icon-calendar-days"></i><span class="post-meta-label">发表于</span><time itemprop="dateCreated datePublished" datetime="2024-07-10T07:55:16.000Z" title="发表于 2024-07-10 15:55:16">2024-07-10</time></span></div><div class="meta-secondline"><span class="post-meta-separator"></span><span class="post-meta-wordcount"><i class="anzhiyufont anzhiyu-icon-file-word post-meta-icon" title="文章字数"></i><span class="post-meta-label" title="文章字数">字数总计:</span><span class="word-count" title="文章字数">2.2k</span><span class="post-meta-separator"></span><i class="anzhiyufont anzhiyu-icon-clock post-meta-icon" title="阅读时长"></i><span class="post-meta-label" title="阅读时长">阅读时长:</span><span>7分钟</span></span><span class="post-meta-separator"></span><span id="" data-flag-title="使用rsync实现windows与linux数据同步|保姆级图文教程"><i class="anzhiyufont anzhiyu-icon-fw-eye post-meta-icon"></i><span class="post-meta-label" title="阅读量">阅读量:</span><span id="twikoo_visitors" title="访问量"><i class="anzhiyufont anzhiyu-icon-spinner anzhiyu-spin"></i></span></span><span class="post-meta-separator">       </span><span class="post-meta-position" title="作者IP属地为贵阳"><i class="anzhiyufont anzhiyu-icon-location-dot"></i>贵阳</span></div></div></div><article class="post-content" id="article-container" itemscope itemtype="https://blog.tangbojin.cn/2024/07/10/%E4%BD%BF%E7%94%A8rsync%E5%AE%9E%E7%8E%B0windows%E4%B8%8Elinux%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5/"><header><a class="post-meta-categories" href="/categories/%E6%8A%80%E6%9C%AF%E5%8D%9A%E6%96%87/" itemprop="url">技术博文</a><a href="/tags/Linux/" tabindex="-1" itemprop="url">Linux</a><a href="/tags/rsync/" tabindex="-1" itemprop="url">rsync</a><a href="/tags/Windows/" tabindex="-1" itemprop="url">Windows</a><h1 id="CrawlerTitle" itemprop="name headline">使用rsync实现windows与linux数据同步|保姆级图文教程</h1><span itemprop="author" itemscope itemtype="http://schema.org/Person">唐喜乐</span><time itemprop="dateCreated datePublished" datetime="2024-07-10T07:55:16.000Z" title="undefined 2024-07-10 15:55:16">2024-07-10</time></header><h1 id="rsync实现Windows与Linux文件同步部署文档"><a href="#rsync实现Windows与Linux文件同步部署文档" class="headerlink" title="rsync实现Windows与Linux文件同步部署文档"></a>rsync实现Windows与Linux文件同步部署文档</h1><h2 id="1-部署准备与说明"><a href="#1-部署准备与说明" class="headerlink" title="1. 部署准备与说明"></a>1. 部署准备与说明</h2><h3 id="1-1-前置说明"><a href="#1-1-前置说明" class="headerlink" title="1.1 前置说明"></a>1.1 前置说明</h3><ul>
+<li>该方案使用rsync程序进行数据的同步与备份。</li>
+<li>该程序在Linux系统的客户端为rsync；Windows系统的服务端为cwRsyncServer</li>
+<li>我们将Windows系统作为服务端，将Linux系统作为客户端，采用Linux客户端把文件推送到Windows服务器端的同步策略进行数据的同步</li>
+<li>数据同步为无差异同步，以客户端的数据为准，当客户端数据有增删时，服务端在同步时也会进行响应的数据增删。</li>
+<li>无网络环境的话，需要提前下载好<a target="_blank" rel="noopener" href="https://www.backupassist.com/rsync/cwRsyncServer_4.1.0_Installer.zip?x99680">Windows</a>和<a target="_blank" rel="noopener" href="https://github.com/RsyncProject/rsync/archive/refs/tags/v3.3.0.tar.gz">Linux</a>的安装包，<strong>点击对应系统进行下载</strong></li>
+</ul>
+<h3 id="1-2-安装软件"><a href="#1-2-安装软件" class="headerlink" title="1.2 安装软件"></a>1.2 安装软件</h3><h2 id="2-安装Windows服务端cwRsyncServer"><a href="#2-安装Windows服务端cwRsyncServer" class="headerlink" title="2. 安装Windows服务端cwRsyncServer"></a>2. 安装Windows服务端cwRsyncServer</h2><h3 id="2-1-创建名为SvcCWRSYNC的Windows管理员账户"><a href="#2-1-创建名为SvcCWRSYNC的Windows管理员账户" class="headerlink" title="2.1 创建名为SvcCWRSYNC的Windows管理员账户"></a>2.1 创建名为<code>SvcCWRSYNC</code>的Windows管理员账户</h3><p><strong>Windows 10：</strong></p>
+<ul>
+<li>点击开始菜单，点击上方的用户头像图标，选择更改账户设置<br><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.gitmirror.com//tangbojin/picx-images-hosting/master/article/rsync1.3d4oafigya.avif"></li>
+<li>弹窗后，点击其他用户，点右侧的“+”图标，将其他人添加到这台电脑<br><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.gitmirror.com//tangbojin/picx-images-hosting/master/article/rsync2.3goa85bjo3.avif"></li>
+<li>弹窗后，点击<code>我没有这个人的登录信息</code><br><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.gitmirror.com//tangbojin/picx-images-hosting/master/article/rsync3.pf802pfmc.avif"></li>
+<li>页面更新后，点击<code>添加一个没有 Microsoft 帐户的用户</code><br><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.gitmirror.com//tangbojin/picx-images-hosting/master/article/rsync4.6pne4sz1at.avif"></li>
+<li>弹窗后，设置用户名为<code>SvcCWRSYNC</code>，密码自己进行设定，安全问题可自由填写，填写完成点击下一步<br><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.gitmirror.com//tangbojin/picx-images-hosting/master/article/rsync5.3yebwqcx91.avif"></li>
+<li>在创建完成后的界面，点击<code>更改账户类型</code>，在弹出的下拉框中点击选择<code>管理员</code>，点击确定，完成用户的创建<br><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.gitmirror.com//tangbojin/picx-images-hosting/master/article/rsync6.73ttvo7c5y.avif"></li>
+</ul>
+<h3 id="2-2-安装cwRsyncServer软件"><a href="#2-2-安装cwRsyncServer软件" class="headerlink" title="2.2 安装cwRsyncServer软件"></a>2.2 安装cwRsyncServer软件</h3><ol>
+<li>解压上面提供的cwRsyncServer压缩包，得到一个exe的安装软件，双击程序启动安装，一路点击直到<strong>Service Account</strong>界面<br><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.gitmirror.com//tangbojin/picx-images-hosting/master/article/rsync7.3k7w5v4mdz.avif"></li>
+<li><font color="DeepPink">cwRsyncServer要求给定一个Windows账户用于同步数据，否则将无法启动对应的服务程序，此处填写刚才创建的Windows账户<code>SvcCWRSYNC</code>，密码为<code>刚才自定义的密码</code></font></li>
+<li>安装完成后关闭</li>
+<li>右键点击任务栏，点击任务管理器打开它，打开后切换到服务选项卡，点击打开服务<br><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.gitmirror.com//tangbojin/picx-images-hosting/master/article/rsync8.39l2cppe8o.avif"></li>
+<li>找到名称为RsyncServer的服务，如没有此服务则是安装时设置的用户账户与Windows实际账户不匹配或是非管理员账户，此种情况请卸载后重新安装，并正确设置用户账户<br><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.gitmirror.com//tangbojin/picx-images-hosting/master/article/rsync9.9kg2ale82h.avif"></li>
+<li>双击打开RsyncServer服务，选择启动类型：自动，点击启动，启动完成后点击确定。</li>
+<li><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.gitmirror.com//tangbojin/picx-images-hosting/master/article/rsync10.70a7xye9gb.avif"></li>
+</ol>
+<h3 id="2-3-配置cwRsyncServer服务端"><a href="#2-3-配置cwRsyncServer服务端" class="headerlink" title="2.3 配置cwRsyncServer服务端"></a>2.3 配置cwRsyncServer服务端</h3><ul>
+<li>打开软件的安装目录（默认是在<code>C:\Program Files (x86)\ICW</code>，如自定义目录则打开对应目录），目录内文件如下<br><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.gitmirror.com//tangbojin/picx-images-hosting/master/article/rsync11.9gwgcvl5cs.avif"></li>
+<li>使用文本编辑器打开<code>rsyncd.conf</code>文件，修改其中配置如下<br><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.gitmirror.com//tangbojin/picx-images-hosting/master/article/rsync12.2dokx9fpst.avif"></li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">重要参数说明：</span><br><span class="line">[rsyncfile] —— 模块名，定义哪个文件夹用来进行数据同步，如希望同步多个文件夹，可增加模块。</span><br><span class="line">从[rsyncfile]到最后的配置进行拷贝，放在配置末尾，修改path参数为指定用来同步数据的文件夹即可，修改[ ]中的名称，可自定义</span><br><span class="line">Path —— 指定用来存放同步数据的文件夹，可自定义。</span><br><span class="line">但是/cygdrive/为路径前缀，不可变动，后面的值才是Windows实际的路径，C盘D盘用小写字母表示即可</span><br></pre></td></tr></table></figure>
+<p><strong>务必请根据需求修改path路径</strong><br><strong>切换到安装目录的etc文件夹下，将创建完整名为<code>rsyncd.secrets</code>的密码文件</strong><br><font color="DeepPink">此文件为中为数据为 用户名:密码，示例 test:123</font></p>
+<h3 id="2-4-开放防火墙，允许该程序使用的端口进行数据出入"><a href="#2-4-开放防火墙，允许该程序使用的端口进行数据出入" class="headerlink" title="2.4 开放防火墙，允许该程序使用的端口进行数据出入"></a>2.4 开放防火墙，允许该程序使用的端口进行数据出入</h3><ol>
+<li>打开控制面板，点击Windows Defender 防火墙，点击右侧的高级设置</li>
+<li>弹出窗口后，点击左侧的入站规则，再点击右边的新建规则</li>
+<li>弹窗后，点击选择端口，点击下一步，选择TCP、特定本地端口，并填入873<br><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.gitmirror.com//tangbojin/picx-images-hosting/master/article/rsync13.lvm2cwcww.avif"></li>
+<li>填写完成后，一直点击下一步，直到名称项，填入RsyncServer Port，点击完成。</li>
+<li>同样的方法，配置出站规则，步骤与入站规则一致</li>
+</ol>
+<h2 id="3-安装Linux客户端rsync"><a href="#3-安装Linux客户端rsync" class="headerlink" title="3. 安装Linux客户端rsync"></a>3. 安装Linux客户端rsync</h2><h3 id="3-1-网络联通性确认"><a href="#3-1-网络联通性确认" class="headerlink" title="3.1 网络联通性确认"></a>3.1 网络联通性确认</h3><ul>
+<li>Linux环境也需确保873端口开放访问，执行命令<code>telnet Windows IP地址 873</code></li>
+</ul>
+<p>如返回下图的情况，表示端口已联通<br><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.gitmirror.com//tangbojin/picx-images-hosting/master/article/rsync14.839x8ua3c1.avif"><br>如提示：**-bash: telent: command not found**，则该命令未安装<br>依次执行<code>sudo yum install telnet、sudo yum install telnet-server</code>进行安装<br>如，无法联通，则执行<code>sudo firewall-cmd --zone=public --add-port=873/tcp –permanent</code><br>对873端口开放防火墙，再进行确认</p>
+<h3 id="3-2-Yum命令安装方式："><a href="#3-2-Yum命令安装方式：" class="headerlink" title="3.2 Yum命令安装方式："></a>3.2 Yum命令安装方式：</h3><p>此方式针对Linux电脑<strong>可以连接外网</strong>，能使用yum安装命令的情况，能简便安装rsync服务</p>
+<ol>
+<li><p>Linux CentOS系统上执行命令进行安装：<code>sudo yum install rsync -y</code>，等待出现Complete！表示安装成功<br> <img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.gitmirror.com//tangbojin/picx-images-hosting/master/article/rsync15.2dokx9fpsy.avif"></p>
+</li>
+<li><p>配置密码文件。执行<code>sudo vi /etc/rsyncd.passwd</code>，输入<code>在windows上设置的SvcCWRSYNC用户的密码</code><br>完成后，保存，退出</p>
+</li>
+<li><p>设置密码文件权限，执行<code>sudo chmod 600 /etc/rsyncd.passwd</code></p>
+</li>
+<li><p>设置配置文件，执行<code>sudo vi /etc/rsyncd.conf</code>填入下列内容：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">uid = root</span><br><span class="line">gid = root</span><br><span class="line">use <span class="built_in">chroot</span> = no</span><br><span class="line">max connections = 4</span><br></pre></td></tr></table></figure>
+<p>完成后，保存，退出</p>
+</li>
+<li><p>启动服务，执行<code>systemctl start rsyncd.service</code></p>
+</li>
+<li><p>设置开机自启，执行<code>systemctl enable rsyncd.service</code></p>
+</li>
+</ol>
+<h3 id="3-3-编译安装方式"><a href="#3-3-编译安装方式" class="headerlink" title="3.3 编译安装方式"></a>3.3 编译安装方式</h3><p>此方式为编译安装，适用<strong>无法访问外网与yum安装命令的</strong>情况，兼容CentOS与Ubuntu系统。<strong>须在本文开头点击Linux下载对应软件包</strong></p>
+<ol>
+<li><p>Linux服务器上执行 <code>cd ~</code> ,切换到当前用户目录，执行<code>pwd</code>查看当前用户目录，将下载的tar包拷贝到此目录下</p>
+</li>
+<li><p>完成拷贝后，执行<code>sudo cp ~/rsync-3.1.3.tar.gz /opt/rsync-3.1.3.tar.gz</code>，切换到opt目录下，<code>cd /opt/</code>，查看文件是否存在</p>
+</li>
+<li><p>执行<code>sudo tar -zxvf rsync-3.1.3.tar.gz</code>，对程序包进行解压</p>
+</li>
+<li><p>解压完成，切换到目录，<code>cd /opt/rsync-3.1.3</code></p>
+</li>
+<li><p>执行<code>sudo ./configure</code>检查配置，出现如下提示表示配置正确</p>
+</li>
+<li><p>执行<code>sudo make</code>，完成后再执行<code>sudo make install</code>，对程序包进行编译</p>
+</li>
+<li><p>编译完成后，需要自己设置配置文件，执行<code>sudo mkdir /etc/rsyncd</code>，创建配置文件存放的文件夹</p>
+</li>
+<li><p>切换到此文件夹，<code>cd /etc/rsyncd/</code></p>
+</li>
+<li><p>执行<code>sudo touch rsyncd.conf</code>，创建配置文件</p>
+</li>
+<li><p>执行<code>sudo vim /etc/rsyncd/rsyncd.conf</code>，编辑配置文件，填入下列内容</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">uid = root</span><br><span class="line">gid = root</span><br><span class="line">use <span class="built_in">chroot</span> = no</span><br><span class="line">max connections = 4</span><br></pre></td></tr></table></figure>
+<p>输入完成后，保存退出</p>
+</li>
+<li><p>执行<code>sudo touch rsyncd.passwd</code>，创建密码文件，填入<code>安装时设置的密码</code>，输入完成后保存退出</p>
+</li>
+<li><p>设置密码文件权限<code>sudo chmod 600 /etc/rsyncd/rsyncd.passwd</code></p>
+</li>
+<li><p>启动服务，执行<code>sudo /usr/local/bin/rsync --daemon --config=/etc/rsyncd/rsyncd.conf</code></p>
+</li>
+</ol>
+<h2 id="4-设置定时同步数据的任务"><a href="#4-设置定时同步数据的任务" class="headerlink" title="4. 设置定时同步数据的任务"></a>4. 设置定时同步数据的任务</h2><h3 id="4-1-使用crontabs设置定时同步数据的任务"><a href="#4-1-使用crontabs设置定时同步数据的任务" class="headerlink" title="4.1 使用crontabs设置定时同步数据的任务"></a>4.1 使用crontabs设置定时同步数据的任务</h3><ol>
+<li>查看cron服务是否在运行，执行<code>service crond status</code>，如下为运行状态<br><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.gitmirror.com//tangbojin/picx-images-hosting/master/article/rsync17.2h86uz8sis.avif"></li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">注：如服务非运行状态则执行systemctl start crond进行启动</span><br><span class="line">如未找到该服务，则依次执行sudo yum install crontabs、systemctl enable crond、systemctl start crond进行安装并启动</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>设置数据同步脚本，执行 <code>sudo touch /usr/local/bin/databackup.sh</code>，创建脚本。</li>
+<li>执行<code>sudo vi /usr/local/bin/databackup.sh</code>编辑脚本，输入如下命令：</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> /usr/local/bin/rsync -vzrtopg --progress &lt;数据存放的路径&gt; SvcCWRSYNC@&lt;Windows的IP地址&gt;::&lt;模块名&gt; --password-file=/etc/rsyncd/rsyncd.passwd</span><br></pre></td></tr></table></figure>
+
+<p>注：<strong>其中&lt;&gt;内容为需要自己替换的地方</strong>，下面给出一个样例进行参考：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> /usr/local/bin/rsync -vzrtopg --progress /usr/share/testrsync SvcCWRSYNC@192.168.1.1::rsyncfile --password-file=/etc/rsyncd/rsyncd.passwd</span><br></pre></td></tr></table></figure>
+
+<p><strong>这表示我需要将&#x2F;usr&#x2F;share&#x2F;testrsync文件夹中所有内容，同步到ip地址为192.168.1.1的电脑上，数据存放在rsyncfile模块中指定的windows目录</strong></p>
+<p>注意：<strong>如配置了多个模块用来同步，此处需相应增加同步命令，只需修改数据存放的路径与对应的模块名即可</strong>，设置完成后，保存，退出。<br>4. 设置系统定时任务，定时执行备份脚本，执行<code>sudo vi /etc/crontab</code>，输入如下内容：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">SHELL=/bin/bash</span><br><span class="line">PATH=/sbin:/bin:/usr/sbin:/usr/bin</span><br><span class="line">MAILTO=root</span><br><span class="line"></span><br><span class="line"><span class="comment"># For details see man 4 crontabs</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Example of job definition:</span></span><br><span class="line"><span class="comment"># .---------------- minute (0 - 59)</span></span><br><span class="line"><span class="comment"># |  .------------- hour (0 - 23)</span></span><br><span class="line"><span class="comment"># |  |  .---------- day of month (1 - 31)</span></span><br><span class="line"><span class="comment"># |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</span></span><br><span class="line"><span class="comment"># |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</span></span><br><span class="line"><span class="comment"># |  |  |  |  |</span></span><br><span class="line"><span class="comment"># *  *  *  *  * user-name  command to be executed</span></span><br><span class="line">*/30 * * * *  root /usr/local/bin/databackup.sh</span><br></pre></td></tr></table></figure>
+
+<p>输入完成后，保存，退出。以上表示，系统将每隔30分钟执行一次刚才的备份脚本，进行数据的备份<br>4)	执行<code>sudo crontab /etc/crontab</code>使任务立即生效</p>
+</article><div class="post-copyright"><div class="copyright-cc-box"><i class="anzhiyufont anzhiyu-icon-copyright"></i></div><div class="post-copyright__author_box"><a class="post-copyright__author_img" href="/" title="头像"><img class="post-copyright__author_img_back" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/tbj_light.avif" title="头像" alt="头像"><img class="post-copyright__author_img_front" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/tbj_light.avif" title="头像" alt="头像"></a><div class="post-copyright__author_name">唐喜乐</div><div class="post-copyright__author_desc">咸鱼🛌🛌🛌</div></div><div class="post-copyright__post__info"><a class="post-copyright__original" title="该文章为原创文章，注意版权协议" href="https://blog.tangbojin.cn/2024/07/10/%E4%BD%BF%E7%94%A8rsync%E5%AE%9E%E7%8E%B0windows%E4%B8%8Elinux%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5/">原创</a><a class="post-copyright-title"><span onclick="rm.copyPageUrl('https://blog.tangbojin.cn/2024/07/10/%E4%BD%BF%E7%94%A8rsync%E5%AE%9E%E7%8E%B0windows%E4%B8%8Elinux%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5/')">使用rsync实现windows与linux数据同步|保姆级图文教程</span></a></div><div class="post-tools" id="post-tools"><div class="post-tools-left"><div class="rewardLeftButton"><div class="post-reward" onclick="anzhiyu.addRewardMask()"><div class="reward-button button--animated" title="赞赏作者"><i class="anzhiyufont anzhiyu-icon-hand-heart-fill"></i>打赏作者</div><div class="reward-main"><div class="reward-all"><span class="reward-title">感谢你赐予我前进的力量</span><ul class="reward-group"><li class="reward-item"><a href="/img/wechatpay.webp" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/wechatpay.webp" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.webp" target="_blank"><img class="post-qr-code-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/alipay.webp" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul><a class="reward-main-btn" href="/about/#about-reward" target="_blank"><div class="reward-text">赞赏者名单</div><div class="reward-dec">因为你们的支持让我意识到写文章的价值🙏</div></a></div></div></div><div id="quit-box" onclick="anzhiyu.removeRewardMask()" style="display: none"></div></div><div class="shareRight"><div class="share-link mobile"><div class="share-qrcode"><div class="share-button" title="使用手机访问这篇文章"><i class="anzhiyufont anzhiyu-icon-qrcode"></i></div><div class="share-main"><div class="share-main-all"><div id="qrcode" title="https://blog.tangbojin.cn/2024/07/10/%E4%BD%BF%E7%94%A8rsync%E5%AE%9E%E7%8E%B0windows%E4%B8%8Elinux%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5/"></div><div class="reward-dec">使用手机访问这篇文章</div></div></div></div></div><div class="share-link weibo"><a class="share-button" target="_blank" href="https://service.weibo.com/share/share.php?title=undefined&amp;url=https://blog.tangbojin.cn/2024/07/10/%E4%BD%BF%E7%94%A8rsync%E5%AE%9E%E7%8E%B0windows%E4%B8%8Elinux%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5/&amp;pic=undefined" rel="external nofollow noreferrer noopener"><i class="anzhiyufont anzhiyu-icon-weibo"></i></a></div><script>function copyCurrentPageUrl() {
+  var currentPageUrl = window.location.href;
+  var input = document.createElement("input");
+  input.setAttribute("value", currentPageUrl);
+  document.body.appendChild(input);
+  input.select();
+  input.setSelectionRange(0, 99999);
+  document.execCommand("copy");
+  document.body.removeChild(input);
+}</script><div class="share-link copyurl"><div class="share-button" id="post-share-url" title="复制链接" onclick="copyCurrentPageUrl()"><i class="anzhiyufont anzhiyu-icon-link"></i></div></div></div></div></div><div class="post-copyright__notice"><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://blog.tangbojin.cn" target="_blank">Town-Xiler</a>！</span></div></div><div class="post-tools-right"><div class="tag_share"><div class="post-meta__box"><div class="post-meta__box__tag-list"><a class="post-meta__box__tags" href="/tags/Linux/"><span class="tags-punctuation"> <i class="anzhiyufont anzhiyu-icon-tag"></i></span>Linux<span class="tagsPageCount">2</span></a><a class="post-meta__box__tags" href="/tags/rsync/"><span class="tags-punctuation"> <i class="anzhiyufont anzhiyu-icon-tag"></i></span>rsync<span class="tagsPageCount">1</span></a><a class="post-meta__box__tags" href="/tags/Windows/"><span class="tags-punctuation"> <i class="anzhiyufont anzhiyu-icon-tag"></i></span>Windows<span class="tagsPageCount">1</span></a></div></div></div><div class="post_share"><div class="social-share" data-image="https://raw.githubusercontent.com/tangbojin/picx-images-hosting/master/article/spring_cloud_cover.5c0vgg64b5.avif" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.cbd.int/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"/><script src="https://cdn.cbd.int/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer="defer"></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2024/07/03/%E4%B8%8B%E6%9E%B6%E5%90%8E-docker%E7%9A%84%E5%AE%89%E8%A3%85%E5%92%8C%E6%9B%BF%E4%BB%A3%E6%BA%90/"><img class="prev-cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/linear-gradient(%20135deg," onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">下架后,docker的安装和替代源</div></div></a></div><div class="next-post pull-right"><a href="/2024/07/11/%E4%BD%BF%E7%94%A8cloudflare%E4%BB%A3%E7%90%86%E6%89%80%E6%9C%89%E7%BD%91%E7%AB%99-%E4%B8%8D%E5%86%8D%E6%8B%85%E5%BF%83%E8%AE%BF%E9%97%AE%E7%9A%84%E5%9C%B0%E5%9D%80%E8%A2%AB%E5%A2%99%E4%BA%86/"><img class="next-cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.githubusercontent.com/tangbojin/picx-images-hosting/master/shokax/article_cloudflare.6t6zqj7s9b.avif" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">使用cloudflare代理所有网站|不再担心访问的地址被墙了</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="anzhiyufont anzhiyu-icon-thumbs-up fa-fw" style="font-size: 1.5rem; margin-right: 4px"></i><span>喜欢这篇文章的人也看了</span></div><div class="relatedPosts-list"><div><a href="/2024/03/22/Linux%E7%9A%84home%E7%9B%AE%E5%BD%95%E6%BB%A1%E4%BA%86%EF%BC%8C%E4%BD%86%E4%BD%BF%E7%94%A8%E9%87%8F%E5%BE%88%E5%B0%91/" title="Linux的home目录满了，但使用量很少"><img class="cover" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.githubusercontent.com/tangbojin/picx-images-hosting/master/shokax/linux.4915cz9ptn.webp" alt="cover"><div class="content is-center"><div class="date"><i class="anzhiyufont anzhiyu-icon-calendar-days fa-fw"></i> 2024-03-22</div><div class="title">Linux的home目录满了，但使用量很少</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="anzhiyufont anzhiyu-icon-comments"></i><span> 评论</span></div><div class="comment-randomInfo"><a onclick="anzhiyu.addRandomCommentInfo()" href="javascript:void(0)">匿名评论</a><a href="/privacy" style="margin-left: 4px">隐私政策</a></div><div class="comment-tips" id="comment-tips"><span>✅ 你无需删除空行，直接评论以获取最佳展示效果</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div><div class="comment-barrage"></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="card-content"><div class="author-info__sayhi" id="author-info__sayhi" onclick="anzhiyu.changeSayHelloText()"></div><div class="author-info-avatar"><img class="avatar-img" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/tbj_light.avif" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/><div class="author-status"><img class="g-status" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/tbj_dark.avif" alt="status"/></div></div><div class="author-info__description"><div style="line-height:1.38;margin:0.6rem 0;text-align:justify;color:rgba(255, 255, 255, 0.8);">博客主要作为我<b style="color:#fff">开发记录、生活分享和结交朋友</b>的一个平台，还有一些<b style="color:#fff">建站折腾</b>和<b style="color:#fff">域名和网络构建记录</b>。</div><div style="line-height:1.38;margin:0.6rem 0;text-align:justify;color:rgba(255, 255, 255, 0.8);">如果在这里能帮助到你的话，我会<b style="color:#fff">非常开心</b>并且<b style="color:#fff">很乐意结交有趣的朋友</b>。</div></div><div class="author-info__bottom-group"><a class="author-info__bottom-group-left" href="/about"><h1 class="author-info__name">唐喜乐</h1><div class="author-info__desc">咸鱼🛌🛌🛌</div></a><div class="card-info-social-icons is-center"><a class="social-icon faa-parent animated-hover" href="https://github.com/tangbojin" target="_blank" title="Github"><i class="anzhiyufont anzhiyu-icon-github"></i></a></div></div></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-bullhorn anzhiyu-shake"></i><span>公告</span></div><div class="announcement_content">欢迎您，常回来看看</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-bars"></i><span>文章目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#rsync%E5%AE%9E%E7%8E%B0Windows%E4%B8%8ELinux%E6%96%87%E4%BB%B6%E5%90%8C%E6%AD%A5%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3"><span class="toc-number">1.</span> <span class="toc-text">rsync实现Windows与Linux文件同步部署文档</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E9%83%A8%E7%BD%B2%E5%87%86%E5%A4%87%E4%B8%8E%E8%AF%B4%E6%98%8E"><span class="toc-number">1.1.</span> <span class="toc-text">1. 部署准备与说明</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%89%8D%E7%BD%AE%E8%AF%B4%E6%98%8E"><span class="toc-number">1.1.1.</span> <span class="toc-text">1.1 前置说明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%AE%89%E8%A3%85%E8%BD%AF%E4%BB%B6"><span class="toc-number">1.1.2.</span> <span class="toc-text">1.2 安装软件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%AE%89%E8%A3%85Windows%E6%9C%8D%E5%8A%A1%E7%AB%AFcwRsyncServer"><span class="toc-number">1.2.</span> <span class="toc-text">2. 安装Windows服务端cwRsyncServer</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%88%9B%E5%BB%BA%E5%90%8D%E4%B8%BASvcCWRSYNC%E7%9A%84Windows%E7%AE%A1%E7%90%86%E5%91%98%E8%B4%A6%E6%88%B7"><span class="toc-number">1.2.1.</span> <span class="toc-text">2.1 创建名为SvcCWRSYNC的Windows管理员账户</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%AE%89%E8%A3%85cwRsyncServer%E8%BD%AF%E4%BB%B6"><span class="toc-number">1.2.2.</span> <span class="toc-text">2.2 安装cwRsyncServer软件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E9%85%8D%E7%BD%AEcwRsyncServer%E6%9C%8D%E5%8A%A1%E7%AB%AF"><span class="toc-number">1.2.3.</span> <span class="toc-text">2.3 配置cwRsyncServer服务端</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E5%BC%80%E6%94%BE%E9%98%B2%E7%81%AB%E5%A2%99%EF%BC%8C%E5%85%81%E8%AE%B8%E8%AF%A5%E7%A8%8B%E5%BA%8F%E4%BD%BF%E7%94%A8%E7%9A%84%E7%AB%AF%E5%8F%A3%E8%BF%9B%E8%A1%8C%E6%95%B0%E6%8D%AE%E5%87%BA%E5%85%A5"><span class="toc-number">1.2.4.</span> <span class="toc-text">2.4 开放防火墙，允许该程序使用的端口进行数据出入</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AE%89%E8%A3%85Linux%E5%AE%A2%E6%88%B7%E7%AB%AFrsync"><span class="toc-number">1.3.</span> <span class="toc-text">3. 安装Linux客户端rsync</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%BD%91%E7%BB%9C%E8%81%94%E9%80%9A%E6%80%A7%E7%A1%AE%E8%AE%A4"><span class="toc-number">1.3.1.</span> <span class="toc-text">3.1 网络联通性确认</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Yum%E5%91%BD%E4%BB%A4%E5%AE%89%E8%A3%85%E6%96%B9%E5%BC%8F%EF%BC%9A"><span class="toc-number">1.3.2.</span> <span class="toc-text">3.2 Yum命令安装方式：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85%E6%96%B9%E5%BC%8F"><span class="toc-number">1.3.3.</span> <span class="toc-text">3.3 编译安装方式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E8%AE%BE%E7%BD%AE%E5%AE%9A%E6%97%B6%E5%90%8C%E6%AD%A5%E6%95%B0%E6%8D%AE%E7%9A%84%E4%BB%BB%E5%8A%A1"><span class="toc-number">1.4.</span> <span class="toc-text">4. 设置定时同步数据的任务</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%BD%BF%E7%94%A8crontabs%E8%AE%BE%E7%BD%AE%E5%AE%9A%E6%97%B6%E5%90%8C%E6%AD%A5%E6%95%B0%E6%8D%AE%E7%9A%84%E4%BB%BB%E5%8A%A1"><span class="toc-number">1.4.1.</span> <span class="toc-text">4.1 使用crontabs设置定时同步数据的任务</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="anzhiyufont anzhiyu-icon-history"></i><span>最近发布</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/07/21/Spring-Cloud%E7%9B%B8%E5%85%B3%E9%9D%A2%E8%AF%95%E9%A2%98/" title="Spring Cloud相关面试题"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.githubusercontent.com/tangbojin/picx-images-hosting/master/article/spring_cloud_cover.5c0vgg64b5.avif" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring Cloud相关面试题"/></a><div class="content"><a class="title" href="/2024/07/21/Spring-Cloud%E7%9B%B8%E5%85%B3%E9%9D%A2%E8%AF%95%E9%A2%98/" title="Spring Cloud相关面试题">Spring Cloud相关面试题</a><time datetime="2024-07-21T15:04:59.000Z" title="发表于 2024-07-21 23:04:59">2024-07-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/07/21/Spring%E7%9B%B8%E5%85%B3%E9%9D%A2%E8%AF%95%E9%A2%98/" title="Spring相关面试题"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.githubusercontent.com/tangbojin/picx-images-hosting/master/article/Spring_cover.5mnp9jc2zh.avif" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring相关面试题"/></a><div class="content"><a class="title" href="/2024/07/21/Spring%E7%9B%B8%E5%85%B3%E9%9D%A2%E8%AF%95%E9%A2%98/" title="Spring相关面试题">Spring相关面试题</a><time datetime="2024-07-21T14:35:19.000Z" title="发表于 2024-07-21 22:35:19">2024-07-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/07/21/JVM%E7%9A%84%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" title="JVM的垃圾回收"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.githubusercontent.com/tangbojin/picx-images-hosting/master/shokax/java.2dokkcxa7u.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="JVM的垃圾回收"/></a><div class="content"><a class="title" href="/2024/07/21/JVM%E7%9A%84%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" title="JVM的垃圾回收">JVM的垃圾回收</a><time datetime="2024-07-21T14:25:21.000Z" title="发表于 2024-07-21 22:25:21">2024-07-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/07/21/Java%E5%88%9B%E5%BB%BA%E7%BA%BF%E7%A8%8B%E7%9A%845%E7%A7%8D%E6%96%B9%E5%BC%8F/" title="Java创建线程的5种方式"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.githubusercontent.com//tangbojin/picx-images-hosting/master/shokax/java.2dokkcxa7u.webp" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Java创建线程的5种方式"/></a><div class="content"><a class="title" href="/2024/07/21/Java%E5%88%9B%E5%BB%BA%E7%BA%BF%E7%A8%8B%E7%9A%845%E7%A7%8D%E6%96%B9%E5%BC%8F/" title="Java创建线程的5种方式">Java创建线程的5种方式</a><time datetime="2024-07-21T13:33:06.000Z" title="发表于 2024-07-21 21:33:06">2024-07-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/07/21/Mybatis%E5%B8%B8%E8%A7%81%E9%9D%A2%E8%AF%95%E9%A2%98/" title="Mybatis常见面试题"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://raw.githubusercontent.com/tangbojin/picx-images-hosting/master/article/mybatis_cover.2vemym7mhk.avif" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Mybatis常见面试题"/></a><div class="content"><a class="title" href="/2024/07/21/Mybatis%E5%B8%B8%E8%A7%81%E9%9D%A2%E8%AF%95%E9%A2%98/" title="Mybatis常见面试题">Mybatis常见面试题</a><time datetime="2024-07-21T13:06:34.000Z" title="发表于 2024-07-21 21:06:34">2024-07-21</time></div></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div id="workboard"><img class="workSituationImg boardsign" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/foot_logo_on.svg" alt="上班不吃苦，老板怎么开路虎" title="上班不吃苦，老板怎么开路虎"/><div id="runtimeTextTip"></div></div><p id="ghbdages"><a class="github-badge" target="_blank" href="https://hexo.io/" style="margin-inline:5px" data-title="博客框架为Hexo_v7.2.0" title="博客框架为Hexo_v7.2.0"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://npm.elemecdn.com/anzhiyu-blog@2.1.5/img/badge/Frame-Hexo.svg" alt="博客框架为Hexo_v7.2.0"/></a><a class="github-badge" target="_blank" href="https://blog.anheyu.com/" style="margin-inline:5px" data-title="本站使用AnZhiYu主题" title="本站使用AnZhiYu主题"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.9/img/Theme-AnZhiYu-2E67D3.svg" alt="本站使用AnZhiYu主题"/></a><a class="github-badge" target="_blank" href="https://github.com/" style="margin-inline:5px" data-title="本站项目由Github托管" title="本站项目由Github托管"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://npm.elemecdn.com/anzhiyu-blog@2.1.5/img/badge/Source-Github.svg" alt="本站项目由Github托管"/></a><a class="github-badge" target="_blank" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" style="margin-inline:5px" data-title="本站采用知识共享署名-非商业性使用-相同方式共享4.0国际许可协议进行许可" title="本站采用知识共享署名-非商业性使用-相同方式共享4.0国际许可协议进行许可"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="https://npm.elemecdn.com/anzhiyu-blog@2.2.0/img/badge/Copyright-BY-NC-SA.svg" alt="本站采用知识共享署名-非商业性使用-相同方式共享4.0国际许可协议进行许可"/></a></p></div><div id="footer-bar"><div class="footer-bar-links"><div class="footer-bar-left"><div id="footer-bar-tips"><div class="copyright">&copy;2024 - 2025 By <a class="footer-bar-link" href="/" title="唐喜乐" target="_blank">唐喜乐</a></div></div><div id="footer-type-tips"></div></div><div class="footer-bar-right"><a class="footer-bar-link" target="_blank" rel="noopener" href="https://github.com/anzhiyu-c/hexo-theme-anzhiyu" title="主题">主题</a><a class="footer-bar-link" target="_blank" rel="noopener" href="https://beian.miit.gov.cn/" title="黔ICP备2024027264号-1">黔ICP备2024027264号-1</a><a class="footer-bar-link cc" href="/copyright" title="cc协议"><i class="anzhiyufont anzhiyu-icon-copyright-line"></i><i class="anzhiyufont anzhiyu-icon-creative-commons-by-line"></i><i class="anzhiyufont anzhiyu-icon-creative-commons-nc-line"></i><i class="anzhiyufont anzhiyu-icon-creative-commons-nd-line"></i></a></div></div></div></footer></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="sidebar-site-data site-data is-center"><a href="/archives/" title="archive"><div class="headline">文章</div><div class="length-num">24</div></a><a href="/tags/" title="tag"><div class="headline">标签</div><div class="length-num">26</div></a><a href="/categories/" title="category"><div class="headline">分类</div><div class="length-num">2</div></a></div><span class="sidebar-menu-item-title">功能</span><div class="sidebar-menu-item"><a class="darkmode_switchbutton menu-child" href="javascript:void(0);" title="显示模式"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i><span>显示模式</span></a></div><div class="back-menu-list-groups"><div class="back-menu-list-group"><div class="back-menu-list-title">网页</div><div class="back-menu-list"><a class="back-menu-item" target="_blank" rel="noopener" href="https://tangbojin.cn/" title="主站"><img class="back-menu-item-icon" src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="this.onerror=null,this.src=&quot;/img/404.jpg&quot;" data-lazy-src="/img/favicon.ico" alt="主站"/><span class="back-menu-item-text">主站</span></a></div></div></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 文章区</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/archives/"><i class="anzhiyufont anzhiyu-icon-box-archive faa-tada" style="font-size: 0.9em;"></i><span> 列表</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/categories/"><i class="anzhiyufont anzhiyu-icon-shapes faa-tada" style="font-size: 0.9em;"></i><span> 分类</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags faa-tada" style="font-size: 0.9em;"></i><span> 标签</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 功能区</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/comments/"><i class="anzhiyufont anzhiyu-icon-envelope faa-tada" style="font-size: 0.9em;"></i><span> 留言板</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/music/?id=12260782606&amp;server=netease"><i class="anzhiyufont anzhiyu-icon-music faa-tada" style="font-size: 0.9em;"></i><span> 音乐馆</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/album/"><i class="anzhiyufont anzhiyu-icon-images faa-tada" style="font-size: 0.9em;"></i><span> 相册集</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><span> 关于</span></a><ul class="menus_item_child"><li><a class="site-page child faa-parent animated-hover" href="/about/"><i class="anzhiyufont anzhiyu-icon-paper-plane faa-tada" style="font-size: 0.9em;"></i><span> 关于本人</span></a></li><li><a class="site-page child faa-parent animated-hover" href="/essay/"><i class="anzhiyufont anzhiyu-icon-lightbulb faa-tada" style="font-size: 0.9em;"></i><span> 闲言碎语</span></a></li></ul></div><div class="menus_item"><a class="site-page faa-parent animated-hover" href="/link/"><span> 友链</span></a></div></div><span class="sidebar-menu-item-title">标签</span><div class="card-tags"><div class="item-headline"></div><div class="card-tag-cloud"><a href="/tags/DNS/" style="font-size: 0.88rem;">DNS<sup>1</sup></a><a href="/tags/JVM/" style="font-size: 0.88rem;">JVM<sup>1</sup></a><a href="/tags/Java/" style="font-size: 0.88rem;">Java<sup>13</sup></a><a href="/tags/Linux/" style="font-size: 0.88rem;">Linux<sup>2</sup></a><a href="/tags/Log4j2/" style="font-size: 0.88rem;">Log4j2<sup>1</sup></a><a href="/tags/MarkDown/" style="font-size: 0.88rem;">MarkDown<sup>1</sup></a><a href="/tags/MyBatis/" style="font-size: 0.88rem;">MyBatis<sup>1</sup></a><a href="/tags/Mybatis/" style="font-size: 0.88rem;">Mybatis<sup>2</sup></a><a href="/tags/Mysql/" style="font-size: 0.88rem;">Mysql<sup>1</sup></a><a href="/tags/Nginx/" style="font-size: 0.88rem;">Nginx<sup>1</sup></a><a href="/tags/Redis/" style="font-size: 0.88rem;">Redis<sup>1</sup></a><a href="/tags/Spring/" style="font-size: 0.88rem;">Spring<sup>1</sup></a><a href="/tags/Spring-Cloud/" style="font-size: 0.88rem;">Spring Cloud<sup>1</sup></a><a href="/tags/SpringBoot/" style="font-size: 0.88rem;">SpringBoot<sup>1</sup></a><a href="/tags/Windows/" style="font-size: 0.88rem;">Windows<sup>1</sup></a><a href="/tags/cloudflare/" style="font-size: 0.88rem;">cloudflare<sup>2</sup></a><a href="/tags/hexo/" style="font-size: 0.88rem;">hexo<sup>1</sup></a><a href="/tags/mysql/" style="font-size: 0.88rem;">mysql<sup>1</sup></a><a href="/tags/npm/" style="font-size: 0.88rem;">npm<sup>1</sup></a><a href="/tags/rsync/" style="font-size: 0.88rem;">rsync<sup>1</sup></a><a href="/tags/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/" style="font-size: 0.88rem;">垃圾回收<sup>1</sup></a><a href="/tags/%E5%9F%9F%E5%90%8D/" style="font-size: 0.88rem;">域名<sup>1</sup></a><a href="/tags/%E6%96%87%E4%BB%B6%E5%82%A8%E5%AD%98/" style="font-size: 0.88rem;">文件储存<sup>1</sup></a><a href="/tags/%E7%A7%91%E5%AD%A6%E4%B8%8A%E7%BD%91/" style="font-size: 0.88rem;">科学上网<sup>2</sup></a><a href="/tags/%E7%BA%BF%E7%A8%8B/" style="font-size: 0.88rem;">线程<sup>3</sup></a><a href="/tags/%E9%9D%A2%E8%AF%95/" style="font-size: 0.88rem;">面试<sup>10</sup></a></div></div><hr/></div></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="anzhiyufont anzhiyu-icon-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="anzhiyufont anzhiyu-icon-arrows-left-right"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="anzhiyufont anzhiyu-icon-gear"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="anzhiyufont anzhiyu-icon-list-ul"></i></button><button id="chat-btn" type="button" title="聊天"><i class="anzhiyufont anzhiyu-icon-comment-sms"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="anzhiyufont anzhiyu-icon-comments"></i></a><a id="switch-commentBarrage" href="javascript:anzhiyu.switchCommentBarrage();" title="开关弹幕"><i class="anzhiyufont anzhiyu-icon-danmu"></i></a><button id="go-up" type="button" title="回到顶部"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i></button></div></div><div id="nav-music"><a id="nav-music-hoverTips" onclick="anzhiyu.musicToggle()" accesskey="m">播放音乐</a><div id="console-music-bg"></div><meting-js id="12260782606" server="netease" type="playlist" mutex="true" preload="none" theme="var(--anzhiyu-main)" data-lrctype="0" order="random" volume="0.7"></meting-js></div><div id="algolia-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><button class="search-close-button"><i class="anzhiyufont anzhiyu-icon-xmark"></i></button></nav><div class="search-wrap"><div id="algolia-search-input"></div><hr/><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-info"><div class="algolia-stats"></div><div class="algolia-poweredBy"></div></div></div></div></div><div id="search-mask"></div></div><div id="rightMenu"><div class="rightMenu-group rightMenu-small"><div class="rightMenu-item" id="menu-backward"><i class="anzhiyufont anzhiyu-icon-arrow-left"></i></div><div class="rightMenu-item" id="menu-forward"><i class="anzhiyufont anzhiyu-icon-arrow-right"></i></div><div class="rightMenu-item" id="menu-refresh"><i class="anzhiyufont anzhiyu-icon-arrow-rotate-right" style="font-size: 1rem;"></i></div><div class="rightMenu-item" id="menu-top"><i class="anzhiyufont anzhiyu-icon-arrow-up"></i></div></div><div class="rightMenu-group rightMenu-line rightMenuPlugin"><div class="rightMenu-item" id="menu-copytext"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制选中文本</span></div><div class="rightMenu-item" id="menu-pastetext"><i class="anzhiyufont anzhiyu-icon-paste"></i><span>粘贴文本</span></div><a class="rightMenu-item" id="menu-commenttext"><i class="anzhiyufont anzhiyu-icon-comment-medical"></i><span>引用到评论</span></a><div class="rightMenu-item" id="menu-newwindow"><i class="anzhiyufont anzhiyu-icon-window-restore"></i><span>新窗口打开</span></div><div class="rightMenu-item" id="menu-copylink"><i class="anzhiyufont anzhiyu-icon-link"></i><span>复制链接地址</span></div><div class="rightMenu-item" id="menu-copyimg"><i class="anzhiyufont anzhiyu-icon-images"></i><span>复制此图片</span></div><div class="rightMenu-item" id="menu-downloadimg"><i class="anzhiyufont anzhiyu-icon-download"></i><span>下载此图片</span></div><div class="rightMenu-item" id="menu-newwindowimg"><i class="anzhiyufont anzhiyu-icon-window-restore"></i><span>新窗口打开图片</span></div><div class="rightMenu-item" id="menu-search"><i class="anzhiyufont anzhiyu-icon-magnifying-glass"></i><span>站内搜索</span></div><div class="rightMenu-item" id="menu-searchBaidu"><i class="anzhiyufont anzhiyu-icon-magnifying-glass"></i><span>百度搜索</span></div><div class="rightMenu-item" id="menu-music-toggle"><i class="anzhiyufont anzhiyu-icon-play"></i><span>播放音乐</span></div><div class="rightMenu-item" id="menu-music-back"><i class="anzhiyufont anzhiyu-icon-backward"></i><span>切换到上一首</span></div><div class="rightMenu-item" id="menu-music-forward"><i class="anzhiyufont anzhiyu-icon-forward"></i><span>切换到下一首</span></div><div class="rightMenu-item" id="menu-music-playlist" onclick="window.open(&quot;https://music.163.com/#/playlist?id=12260782606&quot;, &quot;_blank&quot;);" style="display: none;"><i class="anzhiyufont anzhiyu-icon-radio"></i><span>查看所有歌曲</span></div><div class="rightMenu-item" id="menu-music-copyMusicName"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制歌名</span></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" id="menu-randomPost"><i class="anzhiyufont anzhiyu-icon-shuffle"></i><span>随便逛逛</span></a><a class="rightMenu-item menu-link" href="/categories/"><i class="anzhiyufont anzhiyu-icon-cube"></i><span>博客分类</span></a><a class="rightMenu-item menu-link" href="/tags/"><i class="anzhiyufont anzhiyu-icon-tags"></i><span>文章标签</span></a></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item" id="menu-copy" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-copy"></i><span>复制地址</span></a><a class="rightMenu-item" id="menu-commentBarrage" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-message"></i><span class="menu-commentBarrage-text">关闭热评</span></a><a class="rightMenu-item" id="menu-darkmode" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-circle-half-stroke"></i><span class="menu-darkmode-text">深色模式</span></a><a class="rightMenu-item" id="menu-translate" href="javascript:void(0);"><i class="anzhiyufont anzhiyu-icon-language"></i><span>轉為繁體</span></a></div></div><div id="rightmenu-mask"></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.cbd.int/@fancyapps/ui@5.0.28/dist/fancybox/fancybox.umd.js"></script><script src="https://cdn.cbd.int/instant.page@5.2.0/instantpage.js" type="module"></script><script src="https://cdn.cbd.int/vanilla-lazyload@17.8.5/dist/lazyload.iife.min.js"></script><script src="https://cdn.cbd.int/node-snackbar@0.1.16/dist/snackbar.min.js"></script><script>var meting_api = "https://meting.qjqq.cn/?server=:server&type=:type&id=:id&auth=:auth&r=:r";
+</script><canvas id="universe"></canvas><script async src="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.0/dark/dark.js"></script><script>// 消除控制台打印
+var HoldLog = console.log;
+console.log = function () {};
+let now1 = new Date();
+queueMicrotask(() => {
+  const Log = function () {
+    HoldLog.apply(console, arguments);
+  }; //在恢复前输出日志
+  const grt = new Date("04/01/2024 00:00:00"); //此处修改你的建站时间或者网站上线时间
+  now1.setTime(now1.getTime() + 250);
+  const days = (now1 - grt) / 1000 / 60 / 60 / 24;
+  const dnum = Math.floor(days);
+  const ascll = [
+    `欢迎使用安知鱼!`,
+    `生活明朗, 万物可爱`,
+    `
+        
+       █████╗ ███╗   ██╗███████╗██╗  ██╗██╗██╗   ██╗██╗   ██╗
+      ██╔══██╗████╗  ██║╚══███╔╝██║  ██║██║╚██╗ ██╔╝██║   ██║
+      ███████║██╔██╗ ██║  ███╔╝ ███████║██║ ╚████╔╝ ██║   ██║
+      ██╔══██║██║╚██╗██║ ███╔╝  ██╔══██║██║  ╚██╔╝  ██║   ██║
+      ██║  ██║██║ ╚████║███████╗██║  ██║██║   ██║   ╚██████╔╝
+      ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝╚═╝   ╚═╝    ╚═════╝
+        
+        `,
+    "已上线",
+    dnum,
+    "天",
+    "©2024 By 安知鱼 V1.6.12",
+  ];
+  const ascll2 = [`NCC2-036`, `调用前置摄像头拍照成功，识别为【小笨蛋】.`, `Photo captured: `, `🤪`];
+
+  setTimeout(
+    Log.bind(
+      console,
+      `\n%c${ascll[0]} %c ${ascll[1]} %c ${ascll[2]} %c${ascll[3]}%c ${ascll[4]}%c ${ascll[5]}\n\n%c ${ascll[6]}\n`,
+      "color:#425AEF",
+      "",
+      "color:#425AEF",
+      "color:#425AEF",
+      "",
+      "color:#425AEF",
+      ""
+    )
+  );
+  setTimeout(
+    Log.bind(
+      console,
+      `%c ${ascll2[0]} %c ${ascll2[1]} %c \n${ascll2[2]} %c\n${ascll2[3]}\n`,
+      "color:white; background-color:#4fd953",
+      "",
+      "",
+      'background:url("https://npm.elemecdn.com/anzhiyu-blog@1.1.6/img/post/common/tinggge.gif") no-repeat;font-size:450%'
+    )
+  );
+
+  setTimeout(Log.bind(console, "%c WELCOME %c 你好，小笨蛋.", "color:white; background-color:#4f90d9", ""));
+
+  setTimeout(
+    console.warn.bind(
+      console,
+      "%c ⚡ Powered by 安知鱼 %c 你正在访问 唐喜乐 的博客.",
+      "color:white; background-color:#f0ad4e",
+      ""
+    )
+  );
+
+  setTimeout(Log.bind(console, "%c W23-12 %c 你已打开控制台.", "color:white; background-color:#4f90d9", ""));
+
+  setTimeout(
+    console.warn.bind(console, "%c S013-782 %c 你现在正处于监控中.", "color:white; background-color:#d9534f", "")
+  );
+});</script><script async src="/anzhiyu/random.js"></script><script async="async">(function () {
+  var grt = new Date("04/01/2024 00:00:00"); //设置网站上线时间
+  var now = new Date();
+  var dnum;
+  var hnum;
+  var mnum;
+  var snum;
+  var nowHour;
+
+  // 计算并更新天数、小时数、分钟数和秒数
+  function updateTime() {
+    now = new Date(); // 更新 now 的值
+    nowHour = now.getHours(); // 更新 nowHour 的值
+    var days = (now - grt) / 1000 / 60 / 60 / 24;
+    dnum = Math.floor(days);
+    var hours = (now - grt) / 1000 / 60 / 60 - 24 * dnum;
+    hnum = Math.floor(hours);
+    if (String(hnum).length == 1) {
+      hnum = "0" + hnum;
+    }
+    var minutes = (now - grt) / 1000 / 60 - 24 * 60 * dnum - 60 * hnum;
+    mnum = Math.floor(minutes);
+    if (String(mnum).length == 1) {
+      mnum = "0" + mnum;
+    }
+    var seconds = (now - grt) / 1000 - 24 * 60 * 60 * dnum - 60 * 60 * hnum - 60 * mnum;
+    snum = Math.round(seconds);
+    if (String(snum).length == 1) {
+      snum = "0" + snum;
+    }
+  }
+
+  // 更新网页中显示的网站运行时间
+  function updateHtml() {
+    const footer = document.getElementById("footer");
+    if (!footer) return
+    let currentTimeHtml = "";
+    if (nowHour < 18 && nowHour >= 9) {
+      // 如果是上班时间，默认就是"安知鱼-上班摸鱼中.svg"图片，不需要更改
+      currentTimeHtml = `本站居然运行了 ${dnum} 天<span id='runtime'> ${hnum} 小时 ${mnum} 分 ${snum} 秒 </span><i class='anzhiyufont anzhiyu-icon-heartbeat' style='color:red'></i>`;
+    } else {
+      // 如果是下班时间，插入"安知鱼-下班啦.svg"图片
+      let img = document.querySelector("#workboard .workSituationImg");
+      if (img != null) {
+        img.src = "/img/foot_logo_off.svg";
+        img.title = "这就下班了，我还没做好心理准备";
+        img.alt = "这就下班了，我还没做好心理准备";
+      }
+
+      currentTimeHtml = `本站居然运行了 ${dnum} 天<span id='runtime'> ${hnum} 小时 ${mnum} 分 ${snum} 秒 </span><i class='anzhiyufont anzhiyu-icon-heartbeat' style='color:red'></i>`;
+    }
+
+    if (document.getElementById("runtimeTextTip")) {
+      document.getElementById("runtimeTextTip").innerHTML = currentTimeHtml;
+    }
+  }
+
+  setInterval(() => {
+    updateTime();
+    updateHtml();
+  }, 1000);
+})();</script><script src="https://cdn.cbd.int/algoliasearch@4.18.0/dist/algoliasearch-lite.umd.js"></script><script src="https://cdn.cbd.int/instantsearch.js@4.60.0/dist/instantsearch.production.min.js"></script><script src="/js/search/algolia.js"></script><div class="js-pjax"><script>(() => {
+  const init = () => {
+    twikoo.init(Object.assign({
+      el: '#twikoo-wrap',
+      envId: 'https://twikoo.tangbojin.cn/.netlify/functions/twikoo',
+      region: '',
+      onCommentLoaded: () => {
+        anzhiyu.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      }
+    }, null))
+  }
+
+  const loadTwikoo = () => {
+    if (typeof twikoo === 'object') setTimeout(runFn,0)
+    else getScript('https://cdn.cbd.int/twikoo@1.6.27/dist/twikoo.all.min.js').then(runFn)
+  }
+
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://twikoo.tangbojin.cn/.netlify/functions/twikoo',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(res => {
+      countELement.textContent = res[0].count
+    }).catch(err => {
+      console.error(err)
+    })
+  }
+
+  const runFn = () => {
+    init();
+    
+  }
+
+  if ('Twikoo' === 'Twikoo' || !false) {
+    if (false) anzhiyu.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else {
+      loadTwikoo()
+    }
+  } else {
+    window.loadOtherComment = loadTwikoo
+  }
+})()</script><input type="hidden" name="page-type" id="page-type" value="post"><script async src="/js/anzhiyu/comment_barrage.js"></script></div><script>window.addEventListener('load', () => {
+  const changeContent = (content) => {
+    if (content === '') return content
+
+    content = content.replace(/<img.*?src="(.*?)"?[^\>]+>/ig, '[图片]') // replace image link
+    content = content.replace(/<a[^>]+?href=["']?([^"']+)["']?[^>]*>([^<]+)<\/a>/gi, '[链接]') // replace url
+    content = content.replace(/<pre><code>.*?<\/pre>/gi, '[代码]') // replace code
+    content = content.replace(/<[^>]+>/g,"") // remove html tag
+
+    if (content.length > 150) {
+      content = content.substring(0,150) + '...'
+    }
+    return content
+  }
+
+  const getComment = () => {
+    const runTwikoo = () => {
+      twikoo.getRecentComments({
+        envId: 'https://twikoo.tangbojin.cn/.netlify/functions/twikoo',
+        region: '',
+        pageSize: 6,
+        includeReply: true
+      }).then(function (res) {
+        const twikooArray = res.map(e => {
+          return {
+            'content': changeContent(e.comment),
+            'avatar': e.avatar,
+            'nick': e.nick,
+            'url': e.url + '#' + e.id,
+            'date': new Date(e.created).toISOString()
+          }
+        })
+
+        saveToLocal.set('twikoo-newest-comments', JSON.stringify(twikooArray), 10/(60*24))
+        generateHtml(twikooArray)
+      }).catch(function (err) {
+        const $dom = document.querySelector('#card-newest-comments .aside-list')
+        $dom.textContent= "无法获取评论，请确认相关配置是否正确"
+      })
+    }
+
+    if (typeof twikoo === 'object') {
+      runTwikoo()
+    } else {
+      getScript('https://cdn.cbd.int/twikoo@1.6.27/dist/twikoo.all.min.js').then(runTwikoo)
+    }
+  }
+
+  const generateHtml = array => {
+    let result = ''
+
+    if (array.length) {
+      for (let i = 0; i < array.length; i++) {
+        result += '<div class=\'aside-list-item\'>'
+
+        if (true) {
+          const name = 'data-lazy-src'
+          result += `<a href='${array[i].url}' class='thumbnail'><img ${name}='${array[i].avatar}' alt='${array[i].nick}'><div class='name'><span>${array[i].nick} </span></div></a>`
+        }
+        
+        result += `<div class='content'>
+        <a class='comment' href='${array[i].url}' title='${array[i].content}'>${array[i].content}</a>
+        <time datetime="${array[i].date}">${anzhiyu.diffDate(array[i].date, true)}</time></div>
+        </div>`
+      }
+    } else {
+      result += '没有评论'
+    }
+
+    let $dom = document.querySelector('#card-newest-comments .aside-list')
+    $dom && ($dom.innerHTML= result)
+    window.lazyLoadInstance && window.lazyLoadInstance.update()
+    window.pjax && window.pjax.refresh($dom)
+  }
+
+  const newestCommentInit = () => {
+    if (document.querySelector('#card-newest-comments .aside-list')) {
+      const data = saveToLocal.get('twikoo-newest-comments')
+      if (data) {
+        generateHtml(JSON.parse(data))
+      } else {
+        getComment()
+      }
+    }
+  }
+
+  newestCommentInit()
+  document.addEventListener('pjax:complete', newestCommentInit)
+})</script><script async data-pjax src="https://npm.elemecdn.com/anzhiyu-theme-static@1.0.1/bubble/bubble.js"></script><script>var visitorMail = "";
+</script><script async data-pjax src="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/waterfall/waterfall.js"></script><script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/qrcodejs/1.0.0/qrcode.min.js"></script><script src="/js/anzhiyu/right_click_menu.js"></script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.1.9/icon/ali_iconfont_css.css"><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.cbd.int/butterfly-extsrc@1.1.3/dist/fireworks.min.js"></script><script>(() => {
+  const isChatBtn = true
+  const isChatHideShow = true
+
+  if (isChatBtn) {
+    const close = () => {
+      Chatra('minimizeWidget')
+      Chatra('hide')
+    }
+
+    const open = () => {
+      Chatra('openChat', true)
+      Chatra('show')
+    }
+
+    window.ChatraSetup = {
+      startHidden: true
+    }
+  
+    window.chatBtnFn = () => {
+      const isShow = document.getElementById('chatra').classList.contains('chatra--expanded')
+      isShow ? close() : open()
+    }
+  } else if (isChatHideShow) {
+    window.chatBtn = {
+      hide: () => {
+        Chatra('hide')
+      },
+      show: () => {
+        Chatra('show')
+      }
+    }
+  }
+
+  (function(d, w, c) {
+    w.ChatraID = 'dWQtHneSjLzwZpKvX'
+    var s = d.createElement('script')
+    w[c] = w[c] || function() {
+        (w[c].q = w[c].q || []).push(arguments)
+    }
+    s.async = true
+    s.src = 'https://call.chatra.io/chatra.js'
+    if (d.head) d.head.appendChild(s)
+  })(document, window, 'Chatra')
+
+})()</script><link rel="stylesheet" href="https://cdn.cbd.int/anzhiyu-theme-static@1.0.0/aplayer/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.cbd.int/anzhiyu-blog-static@1.0.1/js/APlayer.min.js"></script><script src="https://cdn.cbd.int/hexo-anzhiyu-music@1.0.1/assets/js/Meting2.min.js"></script><script src="https://cdn.cbd.int/pjax@0.2.8/pjax.min.js"></script><script>let pjaxSelectors = ["meta[property=\"og:image\"]","meta[property=\"og:title\"]","meta[property=\"og:url\"]","meta[property=\"og:type\"]","meta[property=\"og:site_name\"]","meta[property=\"og:description\"]","head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+  // removeEventListener scroll 
+  anzhiyu.removeGlobalFnEvent('pjax')
+  anzhiyu.removeGlobalFnEvent('themeChange')
+
+  document.getElementById('rightside').classList.remove('rightside-show')
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', e => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script charset="UTF-8" src="https://cdn.cbd.int/anzhiyu-theme-static@1.1.5/accesskey/accesskey.js"></script></div><div id="popup-window"><div class="popup-window-title">通知</div><div class="popup-window-divider"></div><div class="popup-window-content"><div class="popup-tip">你好呀</div><div class="popup-link"><i class="anzhiyufont anzhiyu-icon-arrow-circle-right"></i></div></div></div></body></html>
